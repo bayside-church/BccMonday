@@ -24,9 +24,10 @@
 - Open the '**Rock**' solution file in Visual Studio 2022
 - In the '**Solution Explorer**', right click the solution and select '**Add > Existing Project**'
 - A file explorer will appear, navigate into the '**BccMonday**' folder and select `BccMonday.csproj`
+- In the '**Solution Explorer**', right click the '**BccMonday**' project and select '**Build**' *(wait until the build completes)*
 - In the '**Solution Explorer**', right click the '**com_baysideonline**' folder and select '**Add Reference**'
-  - **Rock > RockWeb > Plugins > com_baysideonline**
-- A file explorer will appear, navigate into the '**BccMonday > obj > Debug**' folder and select `BccMonday.dll`
+  - A window will appear, select '**Projects > Solution**' on the left side of the window
+  - Select the '**BccMonday**' checkbox, then click '**OK**'
 
 
 ---
