@@ -376,6 +376,33 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                     }
                 }";
 
+            var new_query = @"
+                query {
+                    boards(ids: " + boardId + @", limit: 1) {
+                        id
+                        items_page( limit: 500) {
+                            cursor
+                            items {
+                                id
+                                name
+                                created_at
+                                column_values(ids: [" + "\"" + emailMatchColumnId + "\",\"" + statusColumnId + "\"" + @"]) {
+                                    id
+                                    title
+                                    text
+                                    type
+                                    value
+                                    additional_info
+                            }
+                        }
+                    }
+                }";
+            var newQueryData = Query(new_query);
+            dynamic boards = newQueryData["boards"];
+            dynamic items_page = boards["items_page"];
+            string cursor = items_page["cursor"];
+
+
             var queryData = Query(query);
             if (queryData["boards"] != null && queryData["boards"].Count > 0)
             {
