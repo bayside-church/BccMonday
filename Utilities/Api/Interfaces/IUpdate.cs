@@ -17,7 +17,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
         string CreatorId { get; set; }
 
-        List<IFile> Files { get; set; }
+        List<IAsset> Files { get; set; }
 
         List<IUpdate> Replies { get; set; }
 

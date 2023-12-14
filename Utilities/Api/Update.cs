@@ -47,8 +47,8 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         [JsonProperty("creator_id")]
         public string CreatorId { get; set; }
 
-        [JsonProperty("assets", ItemConverterType =typeof(ConcreteConverter<IFile, File>))]
-        public List<IFile> Files { get; set; }
+        [JsonProperty("assets", ItemConverterType =typeof(ConcreteConverter<IAsset, File>))]
+        public List<IAsset> Files { get; set; }
 
         [JsonProperty("replies", ItemConverterType = typeof(ConcreteConverter<IUpdate, Update>))]
         public List<IUpdate> Replies { get; set; }

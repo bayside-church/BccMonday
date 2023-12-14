@@ -57,7 +57,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
         IUpdate AddUpdateToItem(long itemId, string body, long? parentUpdateId = null);
 
-        List<IFile> GetFilesByAssetIds(List<long> ids);
+        List<IAsset> GetFilesByAssetIds(List<long> ids);
 
         bool ChangeColumnValue(long boardId, long itemId, string columnId, string newValue);
 
