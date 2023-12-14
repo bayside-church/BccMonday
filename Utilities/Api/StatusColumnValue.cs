@@ -1,12 +1,21 @@
 ﻿using com.baysideonline.BccMonday.Utilities.Api.Interfaces;
+using Newtonsoft.Json;
 using System.IO;
 using System.Web.UI;
 
 namespace com.baysideonline.BccMonday.Utilities.Api
 {
-    public class ColorColumnValue : AbstractColumnValue
+    public class StatusColumnValue : AbstractColumnValue
     {
-        public string Color { get; set; }
+
+        /// <summary>
+        /// The label of the status
+        /// </summary>
+        [JsonProperty("statusLabel")]
+        public string Label { get; set; }
+
+        [JsonProperty("label_style")]
+        public StatusLabelStyle LabelStyle { get; set; }
 
         public override Control CreateControl(Page page)
         {
@@ -24,7 +33,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             writer.Write(this.Column.Title);
             writer.RenderEndTag();
             writer.AddAttribute(HtmlTextWriterAttribute.Class, "text-center");
-            writer.AddStyleAttribute("background-color", this.Color);
+            writer.AddStyleAttribute("background-color", this.LabelStyle.Color);
             writer.AddStyleAttribute("text-overflow", "ellipsis");
             writer.AddStyleAttribute("white-space", "nowrap");
             writer.AddStyleAttribute("overflow", "hidden");
@@ -44,6 +53,20 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             root.Text = html;
 
             return root;
+        }
+
+        public class StatusLabelStyle
+        {
+            /// <summary>
+            /// The label's border color in hex format.
+            /// </summary>
+            [JsonProperty("border")]
+            public string Border { get; set; }
+
+            /// <summary>
+            /// The label's color in hex format.
+            /// </summary>
+            public string Color { get; set; }
         }
     }
 }

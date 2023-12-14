@@ -5,15 +5,27 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 {
     public class Column : IColumn
     {
+        /// <summary>
+        /// The column's unique identifier.
+        /// </summary>
         [JsonProperty("id")]
         public string Id { get; set; }
 
+        /// <summary>
+        /// The coilumn's title.
+        /// </summary>
         [JsonProperty("title")]
         public string Title { get; set; }
 
+        /// <summary>
+        /// The column's type.
+        /// </summary>
         [JsonProperty("type")]
         public string Type { get; set; }
 
+        /// <summary>
+        /// The column's settings in a string form.
+        /// </summary>
         [JsonProperty("settings_str")]
         public string Options { get; set; }
 
@@ -33,7 +45,9 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             }
             return labels;
         }
-        
+
+        #region Equivalence methods
+
         public override bool Equals(object obj)
         {
             return Equals(obj as Column);
@@ -53,5 +67,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(Id);
             return hashCode;
         }
+
+        #endregion
     }
 }

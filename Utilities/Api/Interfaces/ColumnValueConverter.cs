@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Rock.UniversalSearch;
 
 namespace com.baysideonline.BccMonday.Utilities.Api.Interfaces
 {
@@ -23,17 +24,10 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Interfaces
             {
                 switch(cvType)
                 {
-                    //TODO(Noah): move these into constructors?
-                    case "color":
+                    //color -> status for new API
+                    case "status":
                     {
-                        var color = "";
-                        var infoStr = (string)jo["additional_info"];
-                        if (!string.IsNullOrWhiteSpace(infoStr))
-                        {
-                            var info = JsonConvert.DeserializeObject<dynamic>(infoStr);
-                            color = info["color"].Value;
-                        }
-                        columnValue = new ColorColumnValue { Color = color };
+                        columnValue = DeserializeColorColumnValue(jo);
                         break;
                     }
                     case "file":
@@ -79,7 +73,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Interfaces
                                 }
                             }
 
-                            columnValue = new ItemListColumnValue { ItemIds = itemIds };
+                            columnValue = new BoardRelationColumnValue { ItemIds = itemIds };
                         }
                         
                         break;
@@ -99,6 +93,64 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Interfaces
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             serializer.Serialize(writer, value);
+        }
+
+        private StatusColumnValue DeserializeColorColumnValue(JObject jo)
+        {
+            /*
+            string infoStr = (string)jo["additional_info"];
+            if (!string.IsNullOrWhiteSpace(infoStr))
+            {
+                var info = JsonConvert.DeserializeObject<ColorInfo>(infoStr);
+                return new StatusColumnValue { Color = info.Color };
+            }
+            */
+            return new StatusColumnValue();
+        }
+
+        private FileColumnValue DeserializeFileColumnValue(JObject jo)
+        {
+            /*
+            string valueStr = (string)jo["value"];
+            if (!string.IsNullOrWhiteSpace(valueStr))
+            {
+                var fileInfo = JsonConvert.DeserializeObject<FileValue>(valueStr);
+                var assetIds = new List<long>();
+                foreach (var file in fileInfo.Files)
+                {
+                    if (file.FileType != "MONDAY_DOC")
+                    {
+                        assetIds.Add(file.AssetId);
+                    }
+                }
+                return new FileColumnValue { AssetIds = assetIds };
+            }
+            */
+            return new FileColumnValue();
+        }
+
+        private BoardRelationColumnValue DeserializeBoardRelationColumnValue(JObject jo)
+        {
+            /*
+            string valueStr = (string)jo["value"];
+            if (!string.IsNullOrWhiteSpace(valueStr))
+            {
+                var pulseIdValues = JsonConvert.DeserializeObject<BoardRelationValue>(valueStr);
+                var itemIds = new List<long>();
+                foreach (var linkedPulseId in pulseIdValues.LinkedPulseIds)
+                {
+                    itemIds.Add(linkedPulseId.LinkedPulseId);
+                }
+                return new BoardRelationColumnValue { ItemIds = itemIds };
+            }
+            */
+            return new BoardRelationColumnValue();
+        }
+
+        // Strongly-typed models for deserialization
+        private class ColorInfo
+        {
+            public string Color { get; set; }
         }
     }
 }

@@ -1,13 +1,26 @@
 ﻿using com.baysideonline.BccMonday.Utilities.Api.Interfaces;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
 using System.Web.UI;
 
 namespace com.baysideonline.BccMonday.Utilities.Api
 {
-    public class ItemListColumnValue : AbstractColumnValue
+    public class BoardRelationColumnValue : AbstractColumnValue
     {
         public List<long> ItemIds { get; set; }
+
+        /// <summary>
+        /// A string representing all the names of the linkted items, separated by commas
+        /// </summary>
+        [JsonProperty("display_value")]
+        public string DispalyValue { get; set; }
+
+        /// <summary>
+        /// The linked items IDs
+        /// </summary>
+        [JsonProperty("linked_item_ids")]
+        public List<long> LinkedItemIds { get; set; }
 
         public override Control CreateControl(Page page)
         {
