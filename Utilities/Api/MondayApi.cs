@@ -280,58 +280,109 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
             var query = @"
                 query {
-                    items(ids: [" + id + @"], limit:1) {
+                  items(ids: [" + id.ToString() + @"], limit: 1) {
+                    id
+                    name
+                    created_at
+                    board {
+                      id
+                      name
+                    }
+                    column_values {
+                      id
+                      text
+                      type
+                      value
+                      ... on ButtonValue {
+                        id
+                        color
+                        buttonLabel: label
+                      }
+                      ... on BoardRelationValue {
+                        value
+                        display_value
+                        linked_items {
+                          id
+                          relative_link
+                        }
+                        linked_item_ids
+                      }
+                      ... on DateValue {
+                        id
+                        date
+                        time
+                      }
+                      ... on StatusValue {
+                        id
+                        value
+                        index
+                        statusLabel: label
+                        is_done
+                        label_style {
+                          color
+                          border
+                        }
+                      }
+                      ... on EmailValue {
+                        id
+                        email
+                      }
+                      ... on FileValue {
+                        id
+                        files {
+                          ... on FileDocValue {
+                            file_id
+                            url
+                          }
+                          ... on FileAssetValue {
+                            asset_id
+                            asset {
+                              url
+                              name
+                              url_thumbnail
+                              public_url
+                            }
+                          }
+                        }
+                      }
+                      column {
+                        id
+                        title
+                        settings_str
+                        description
+                        type
+                      }
+                    }
+                    updates {
+                      id
+                      body
+                      text_body
+                      created_at
+                      creator_id
+                      assets {
                         id
                         name
+                        file_size
+                        public_url
+                        url_thumbnail
+                      }
+                      creator {
+                        id
+                        name
+                      }
+                      replies {
+                        id
+                        body
+                        text_body
                         created_at
-                        board {
-                            id
-                            name
-				            columns {
-                                id
-                                type
-                                title
-                                settings_str
-                            }
-    	                }
-                        column_values {
-                            id
-                            text
-                            title
-                            type
-                            value
-                            additional_info
+                        creator_id
+                        creator {
+                          id
+                          name
                         }
-                        updates {
-                            id
-                            body
-                            text_body
-                            created_at
-                            creator_id
-                            assets {
-                                id
-                                name
-                                file_size
-                                public_url
-                                url_thumbnail
-                            }
-                            creator {
-                                id
-                                name
-                            }
-                            replies {
-                                id
-                                body
-                                text_body
-                                created_at
-                                creator_id
-                                creator {
-                                    id
-                                    name
-                                }
-                            }
-                        }
+                      }
                     }
+                  }
                 }
             ";
 
@@ -356,26 +407,107 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             if (!Initialize().IsOk())
                 return null;
 
-            var query = @"
-                query {
-                    boards(ids: " + boardId + @", limit: 1) {
+            List<IItem> allItems = new List<IItem>();
+
+            // Initial query
+            var initialQuery = @"
+    query {
+        boards(ids: " + boardId + @", limit: 1) {
+            id
+            items_page(limit: 1) {
+                cursor
+                items {
+                    id
+                    name
+                    created_at
+                    column_values(ids: [" + "\"" + emailMatchColumnId + "\",\"" + statusColumnId + "\"" + @"]) {
                         id
-                        items (limit: 1000){
+                        text
+                        type
+                        value
+                        column {
                             id
-                            name
-                            created_at
-                            column_values(ids: [" + "\"" + emailMatchColumnId + "\",\"" + statusColumnId + "\"" + @"]) {
+                            title
+                            settings_str
+                        }
+                    }
+                }
+            }
+        }
+    }";
+
+            var initialQueryData = Query(initialQuery);
+            dynamic board = initialQueryData["boards"][0];
+            dynamic itemsPage = board["items_page"];
+            string cursor = itemsPage["cursor"];
+
+            // Process initial items
+            var initialItems = itemsPage["items"];
+            if (initialItems != null)
+            {
+                foreach (var initialItem in initialItems)
+                {
+                    var itemDetailStr = Convert.ToString(initialItem);
+                    var item = JsonConvert.DeserializeObject<Item>(itemDetailStr);
+
+                    if (item != null)
+                    {
+                        allItems.Add(item);
+                    }
+                }
+            }
+
+            while (!string.IsNullOrEmpty(cursor))
+            {
+                var nextItemsQuery = @"
+        query {
+            boards(ids: " + boardId + @", limit: 1) {
+                id
+                next_items_page(cursor: " + "\"" + cursor + "\"" + @", limit: 500) {
+                    cursor
+                    items {
+                        id
+                        name
+                        created_at
+                        column_values(ids: [" + "\"" + emailMatchColumnId + "\",\"" + statusColumnId + "\"" + @"]) {
+                            id
+                            text
+                            type
+                            value
+                            column {
                                 id
                                 title
-                                text
-                                type
-                                value
-                                additional_info
+                                settings_str
                             }
                         }
                     }
-                }";
+                }
+            }
+        }";
 
+                var nextQueryData = Query(nextItemsQuery);
+                dynamic nextItemsPage = nextQueryData["boards"][0]["next_items_page"];
+                cursor = nextItemsPage["cursor"];
+
+                var nextItems = nextItemsPage["items"];
+                if (nextItems != null)
+                {
+                    foreach (var nextItem in nextItems)
+                    {
+                        var itemDetailStr = Convert.ToString(nextItem);
+                        var item = JsonConvert.DeserializeObject<Item>(itemDetailStr);
+
+                        if (item != null)
+                        {
+                            allItems.Add(item);
+                        }
+                    }
+                }
+            }
+
+            return allItems;
+
+            /*
             var new_query = @"
                 query {
                     boards(ids: " + boardId + @", limit: 1) {
@@ -414,7 +546,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                     var items = board.Items;
                     return items;
                 }
-            }
+            }*/
 
             return null;
         }
@@ -427,6 +559,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             if (_isInitialized)
             {
                 _request.AddJsonBody(new { query });
+                _request.AddHeader("API-Version", "2023-10");
 
                 var res = _client.Post(_request);
 
