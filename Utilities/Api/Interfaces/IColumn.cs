@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 
 namespace com.baysideonline.BccMonday.Utilities.Api
 {

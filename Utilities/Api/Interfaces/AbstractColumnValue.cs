@@ -11,8 +11,8 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Interfaces
         [JsonProperty("text")]
         public string Text { get; set; }
 
-        [JsonProperty("title")]
-        public string Title { get; set; }
+//        [JsonProperty("title")]
+//        public string Title { get; set; }
 
         [JsonProperty("type")]
         public string Type { get; set; }
@@ -20,8 +20,11 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Interfaces
         [JsonProperty("value")]
         public string Value { get; set; }
 
-        [JsonProperty("additional_info")]
-        public string AdditionalInfo { get; set; }
+        //        [JsonProperty("additional_info")]
+        //        public string AdditionalInfo { get; set; }
+
+        [JsonProperty("column")]//, ItemConverterType = typeof(ConcreteConverter<IColumn, Column>))]
+        public Column Column { get; set; }
 
         public abstract Control CreateControl(Page page);
     }

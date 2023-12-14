@@ -21,7 +21,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             writer.RenderBeginTag(HtmlTextWriterTag.Div);
             writer.AddAttribute(HtmlTextWriterAttribute.Class, "font-weight-bold");
             writer.RenderBeginTag(HtmlTextWriterTag.P);
-            writer.Write(this.Title);
+            writer.Write(this.Column.Title);
             writer.RenderEndTag();
             writer.AddStyleAttribute("min-width", "200px");
             writer.AddAttribute(HtmlTextWriterAttribute.Class, "bcc-monday-column-empty");
@@ -32,7 +32,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             writer.RenderBeginTag(HtmlTextWriterTag.Span);
             writer.Write(text);
             writer.RenderEndTag();
-            writer.AddAttribute(HtmlTextWriterAttribute.Id, this.Title);
+            writer.AddAttribute(HtmlTextWriterAttribute.Id, this.Column.Title);
             writer.AddAttribute("onClick", "btnToIconFunction(id)");
             writer.AddAttribute(HtmlTextWriterAttribute.Type, "button");
             writer.AddAttribute(HtmlTextWriterAttribute.Class, "btn btn-primary btn-copy js-tooltip js-copy");
@@ -41,7 +41,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             writer.AddAttribute("data-copy", text);
             writer.AddAttribute(HtmlTextWriterAttribute.Title, "Copy");
             writer.RenderBeginTag(HtmlTextWriterTag.Button);
-            writer.AddAttribute(HtmlTextWriterAttribute.Id, this.Title + " icon");
+            writer.AddAttribute(HtmlTextWriterAttribute.Id, this.Column.Title + " icon");
             writer.AddAttribute(HtmlTextWriterAttribute.Class, "far fa-clone");
             writer.RenderBeginTag(HtmlTextWriterTag.I);
             writer.RenderEndTag();      // </i>

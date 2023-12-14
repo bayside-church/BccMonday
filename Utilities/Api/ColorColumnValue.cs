@@ -21,7 +21,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             writer.RenderBeginTag(HtmlTextWriterTag.Div);
             writer.AddAttribute(HtmlTextWriterAttribute.Class, "font-weight-bold");
             writer.RenderBeginTag(HtmlTextWriterTag.P);
-            writer.Write(this.Title);
+            writer.Write(this.Column.Title);
             writer.RenderEndTag();
             writer.AddAttribute(HtmlTextWriterAttribute.Class, "text-center");
             writer.AddStyleAttribute("background-color", this.Color);
