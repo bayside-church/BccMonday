@@ -1,4 +1,5 @@
 ﻿using com.baysideonline.BccMonday.Utilities.Api.Interfaces;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
 using System.Web.UI;
@@ -7,10 +8,11 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 {
     public class FileColumnValue : AbstractColumnValue
     {
-        public List<IFile> Files { get; set; }
 
         public List<long> AssetIds { get; set; }
 
+        [JsonProperty("files")]
+        public List<FileAssetValue> Files { get; set; }
        
         public override Control CreateControl(Page page)
         {
@@ -51,5 +53,26 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
             return root;
         }
+    }
+
+    public class FileAssetValue
+    {
+        /// <summary>
+        /// The asset associated with the file.
+        /// </summary>
+        [JsonProperty("asset")]
+        public IAsset Asset { get; set; }
+
+        /// <summary>
+        /// The asset's id.
+        /// </summary>
+        [JsonProperty("asset_id")]
+        public long AssetId { get; set; }
+
+        /// <summary>
+        /// the file's name.
+        /// </summary>
+        [JsonProperty("name")]
+        public string Name { get; set; }
     }
 }

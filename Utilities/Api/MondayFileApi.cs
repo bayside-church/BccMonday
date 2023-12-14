@@ -61,11 +61,11 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
         #region mutations
         //TODO(Noah): This is unused. Leave it for now because it might be useful if implemented.
-        public MondayApiResponse<IFile> AddFileToColumn(long itemId, string columnId, BinaryFile binaryFile)
+        public MondayApiResponse<IAsset> AddFileToColumn(long itemId, string columnId, BinaryFile binaryFile)
         {
             if (!Initialize().IsOk())
             {
-                return MondayApiResponse<IFile>.CreateErrorResponse();
+                return MondayApiResponse<IAsset>.CreateErrorResponse();
             }
 
             var filePath = new Uri(GlobalAttributesCache.Get().GetValue("PublicApplicationRoot"))
@@ -102,11 +102,11 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             }
         }
 
-        public MondayApiResponse<IFile> AddFileToUpdate(long updateId, BinaryFile binaryFile)
+        public MondayApiResponse<IAsset> AddFileToUpdate(long updateId, BinaryFile binaryFile)
         {
             if (!Initialize().IsOk())
             {
-                return MondayApiResponse<IFile>.CreateErrorResponse();
+                return MondayApiResponse<IAsset>.CreateErrorResponse();
             }
 
             var filePath = new Uri(GlobalAttributesCache.Get().GetValue("PublicApplicationRoot"))
@@ -148,11 +148,11 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                     if (fileData != null)
                     {
                         var uploadedFile = JsonConvert.DeserializeObject<File>(fileData);
-                        return MondayApiResponse<IFile>.CreateOkResponse(uploadedFile);
+                        return MondayApiResponse<IAsset>.CreateOkResponse(uploadedFile);
                     }
                 }
 
-                return MondayApiResponse<IFile>.CreateErrorResponse();
+                return MondayApiResponse<IAsset>.CreateErrorResponse();
             }
         }
         #endregion
