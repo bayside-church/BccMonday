@@ -1,4 +1,5 @@
 ﻿using com.baysideonline.BccMonday.Utilities.Api.Config;
+using com.baysideonline.BccMonday.Utilities.Api.Responses;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
@@ -7,6 +8,7 @@ using Rock.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 
 namespace com.baysideonline.BccMonday.Utilities.Api
 {
@@ -73,103 +75,74 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             var query = string.Empty;
 
             query = parentUpdateId != null
-                ? "mutation {" +
-                  "create_update (item_id: " + itemId + ", body: \"" + body + "\", parent_id: " + parentUpdateId.Value +
-                  @") {
+                ? @"mutation {
+                        create_update (item_id: " + itemId + ", body: \"" + body + "\", parent_id: " + parentUpdateId.Value + @") {
+                            id
+                            body
+                            text_body
+                            created_at
+                            creator_id
+                            creator {
                                 id
-                                body
-                                text_body
-                                created_at
-                                creator_id
-                                creator {
-                                    id
-                                    name
-                                }
+                                name
                             }
-                        }"
-                : "mutation {" +
-                  "create_update (item_id: " + itemId + ", body: \"" + body + "\"" + @") {
+                        }
+                    }"
+                : @"mutation {
+                        create_update (item_id: " + itemId + ", body: \"" + body + "\"" + @") {
+                            id
+                            body
+                            text_body
+                            created_at
+                            creator_id
+                            creator {
                                 id
-                                body
-                                text_body
-                                created_at
-                                creator_id
-                                creator {
-                                    id
-                                    name
-                                }
+                                name
                             }
-                        }";
+                        }
+                    }";
 
-            var queryData = Query(query);
-            var updateStr = Convert.ToString(queryData["create_update"]);
-
-            if (updateStr != null)
-            {
-                var update = JsonConvert.DeserializeObject<Update>(updateStr);
-                return update;
-            }
-
-            return null;
+            var queryData = Query<CreateUpdateResponse>(query);
+            var update = queryData.Update;
+            return update;
         }
 
-        //TODO(Noah): This API call returns an Item, not a Column Value.
-        //  Return a bool? Or the item singled out to the column value.
         public bool ChangeColumnValue(long boardId, long itemId, string columnId, string newValue)
         {
             if (!Initialize().IsOk())
                 return false;
 
             string query = "mutation { change_simple_column_value(board_id: " + boardId.ToString() + " column_id: \"" + columnId + "\" item_id:" + itemId.ToString() + " value: \"" + newValue + "\") { id } }";
+            var queryData = Query<ChangeSimpleColumnValueResponse>(query);
+            var item = queryData.Item;
 
-            var queryData = Query(query);
-            //var data = GetRootObject(queryData, "change_simple_column_value");
-            var data = queryData["change_simple_column_value"];
-
-            if (data != null)
-            {
-                // TODO: build a new column value based on changed value
-
-                return true;
-            }
-
-            return false;
+            return item != null;
         }
 
         #endregion
 
         #region queries
 
-        public List<IFile> GetFilesByAssetIds(List<long> ids)
+        public List<IAsset> GetFilesByAssetIds(List<long> ids)
         {
             if (!Initialize().IsOk())
-                return null; MondayApiResponse<List<IFile>>.CreateErrorResponse();
+                return null;
+            //MondayApiResponse<List<IAsset>>.CreateErrorResponse();
 
             var query = @"
                 query {
                     assets (ids: [" + string.Join(",", ids) + @"]) {
-                    id
-                    public_url
-                    name
-                    file_size
-                    url_thumbnail
-                }
-            }";
+                        id
+                        public_url
+                        name
+                        file_size
+                        url_thumbnail
+                    }
+                }";
 
-            var queryData = Query(query);
-            //GetRootObject
-            if (queryData["assets"] != null && queryData["assets"].Count > 0)
-            {
-                string fileStr = Convert.ToString(queryData["assets"]);
-
-                var files = JsonConvert.DeserializeObject<List<File>>(fileStr);
-                if (files != null && files.Any())
-                {
-                    return files.ConvertAll(o => (IFile)o);
-                }
-            }
-
-            return null;
+            var queryData = Query<List<IAsset>>(query);
+            if (queryData.Count <= 0 ) return null;
+            return queryData;
         }
 
         public IBoard GetBoard(long id)
@@ -192,22 +165,11 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 }
             ";
 
-            var queryData = Query(query);
-            //TODO(Noah): First of many (but really only one)
-            //GetRootObject
-            if (queryData["boards"] != null && queryData["boards"].Count > 0)
-            {
-                string boardStr = Convert.ToString(queryData["boards"][0]);
+            var queryData = Query<List<IBoard>>(query);
 
-                var board = JsonConvert.DeserializeObject<Board>(boardStr);
-
-                if (board != null)
-                {
-                    return board;
-                }
-            }
-
-            return null;
+            if (queryData.Count <= 0) return null;
+            var board = queryData[0];
+            return board;
         }
 
         public string GetWorkspace(long boardId)
@@ -224,15 +186,10 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                         }
                     }
                 }";
-            var queryData = Query(query);
-            var data = GetRootObject(queryData, "boards");
-
-            if (data != null)
-            {
-                return data["workspace"]["name"].Value;
-            }
-
-            return null;
+            var queryData = Query<GetBoardWorkspaceResponse>(query);
+            var board = queryData.Boards[0];
+            var workspace = board.Workspace;
+            return workspace.Name ?? null;
         }
 
         public List<IBoard> GetBoards()
@@ -249,14 +206,14 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                     }
                 }";
 
-            var queryData = Query(query);
+            var queryData = Query<List<IBoard>>(query);
 
-            if (queryData["boards"] != null && queryData["boards"].Count > 0)
+            if (queryData != null && queryData.Count > 0)
             {
                 var boardJArray = new JArray();
-                foreach (var board in queryData["boards"])
+                foreach (var board in queryData)
                 {
-                    if (string.Equals(board["type"].ToString(), "board"))
+                    if (string.Equals(board.BoardType.ToString(), "board"))
                     {
                         boardJArray.Add(board);
                     }
@@ -386,11 +343,11 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 }
             ";
 
-            var queryData = Query(query);
+            var queryData = Query<List<IItem>>(query);
             //GetRootObject
-            if (queryData["items"] != null && queryData["items"].Count > 0)
+            if (queryData != null && queryData.Count > 0)
             {
-                var itemDetailStr = Convert.ToString(queryData["items"][0]);
+                var itemDetailStr = Convert.ToString(queryData[0]);
                 var item = JsonConvert.DeserializeObject<Item>(itemDetailStr);
 
                 if (item != null)
@@ -414,7 +371,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
     query {
         boards(ids: " + boardId + @", limit: 1) {
             id
-            items_page(limit: 1) {
+            items_page(limit: 20) {
                 cursor
                 items {
                     id
@@ -436,125 +393,86 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         }
     }";
 
-            var initialQueryData = Query(initialQuery);
-            dynamic board = initialQueryData["boards"][0];
-            dynamic itemsPage = board["items_page"];
-            string cursor = itemsPage["cursor"];
+            //var initialQueryData = Query(initialQuery);
+            var initialQueryData = Query <GetBoardsResponse> (initialQuery);
+            var board = initialQueryData.Boards[0];
+            var itemsPage = board.ItemsPage;
+            string cursor = itemsPage.Cursor;
 
             // Process initial items
-            var initialItems = itemsPage["items"];
+            var initialItems = itemsPage.Items;
             if (initialItems != null)
             {
-                foreach (var initialItem in initialItems)
-                {
-                    var itemDetailStr = Convert.ToString(initialItem);
-                    var item = JsonConvert.DeserializeObject<Item>(itemDetailStr);
-
-                    if (item != null)
-                    {
-                        allItems.Add(item);
-                    }
-                }
+                allItems.AddRange(initialItems);
             }
 
             while (!string.IsNullOrEmpty(cursor))
             {
                 var nextItemsQuery = @"
+    query {
+      next_items_page(
+        cursor: ""MSwxODE5OTg2MDMxLF8wRkhvZzVPU29jLVRoRE5aZl93Tyw1NywyMCx8MzYxNTIzNDk1Mw""
+        limit: 500
+      ) {
+        cursor
+        items {
+          id
+          name
+          created_at
+          column_values(ids: [""text"", ""status""]) {
+            id
+            text
+            type
+            value
+            column {
+              id
+              title
+              settings_str
+            }
+          }
+        }
+      }
+    }
+}";
+                    /*@"
         query {
-            boards(ids: " + boardId + @", limit: 1) {
-                id
-                next_items_page(cursor: " + "\"" + cursor + "\"" + @", limit: 500) {
-                    cursor
-                    items {
+            next_items_page(cursor: """ + cursor + @""", limit: 500) {
+                cursor
+                items {
+                    id
+                    name
+                    created_at
+                    column_values(ids: [""" + emailMatchColumnId + "\",\"" + statusColumnId + @"""]) {
                         id
-                        name
-                        created_at
-                        column_values(ids: [" + "\"" + emailMatchColumnId + "\",\"" + statusColumnId + "\"" + @"]) {
+                        text
+                        type
+                        value
+                        column {
                             id
-                            text
-                            type
-                            value
-                            column {
-                                id
-                                title
-                                settings_str
-                            }
+                            title
+                            settings_str
                         }
                     }
                 }
             }
-        }";
+        }";*/
 
-                var nextQueryData = Query(nextItemsQuery);
-                dynamic nextItemsPage = nextQueryData["boards"][0]["next_items_page"];
-                cursor = nextItemsPage["cursor"];
+                //var nextQueryData = Query(nextItemsQuery);
+                var nextItemsPageData = Query<GetNextItemsPageResponse>(nextItemsQuery);
+                if (nextItemsPageData == null) return allItems;
+                var nextItemsPage = nextItemsPageData.NextItemsPage;
+                cursor = nextItemsPage.Cursor;
 
-                var nextItems = nextItemsPage["items"];
-                if (nextItems != null)
-                {
-                    foreach (var nextItem in nextItems)
-                    {
-                        var itemDetailStr = Convert.ToString(nextItem);
-                        var item = JsonConvert.DeserializeObject<Item>(itemDetailStr);
-
-                        if (item != null)
-                        {
-                            allItems.Add(item);
-                        }
-                    }
-                }
+                var nextItems = nextItemsPage.Items;
+                allItems.AddRange(nextItems);
             }
 
             return allItems;
-
-            /*
-            var new_query = @"
-                query {
-                    boards(ids: " + boardId + @", limit: 1) {
-                        id
-                        items_page( limit: 500) {
-                            cursor
-                            items {
-                                id
-                                name
-                                created_at
-                                column_values(ids: [" + "\"" + emailMatchColumnId + "\",\"" + statusColumnId + "\"" + @"]) {
-                                    id
-                                    title
-                                    text
-                                    type
-                                    value
-                                    additional_info
-                            }
-                        }
-                    }
-                }";
-            var newQueryData = Query(new_query);
-            dynamic boards = newQueryData["boards"];
-            dynamic items_page = boards["items_page"];
-            string cursor = items_page["cursor"];
-
-
-            var queryData = Query(query);
-            if (queryData["boards"] != null && queryData["boards"].Count > 0)
-            {
-                string boardStr = Convert.ToString(queryData["boards"][0]);
-                var board = JsonConvert.DeserializeObject<Board>(boardStr);
-
-                if (board != null && board.Items != null)
-                {
-                    var items = board.Items;
-                    return items;
-                }
-            }*/
-
-            return null;
         }
 
         #endregion
         #region private methods
-
-        private dynamic Query(string query)
+        private T Query<T>(string query)
         {
             if (_isInitialized)
             {
@@ -563,29 +481,63 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
                 var res = _client.Post(_request);
 
-                if (res.StatusCode == System.Net.HttpStatusCode.OK)
+                if (res.StatusCode == HttpStatusCode.OK)
                 {
                     var content = res.Content;
-                    var queryData = JsonConvert.DeserializeObject<dynamic>(content);
+                    var queryData = JsonConvert.DeserializeObject<GraphQLResponse<T>>(content);
 
-                    if (queryData["data"] != null)
+                    if (queryData.Data != null)
                     {
-                        return queryData["data"];
+                        return queryData.Data;
                     }
-                    else
+                    else if (queryData.Errors != null && queryData.Errors.Count > 0)
                     {
-                        string errorMessage = queryData["errors"][0]["message"].Value;
-                        ExceptionLogService.LogException(new Exception(string.Format("{0} | query: {1}", errorMessage, query), new Exception("BccMonday")));
-                        return null;
+                        string errorMessage = queryData.Errors[0].Message;
+                        ExceptionLogService.LogException(new Exception($"{errorMessage} | query: {query}", new Exception("BccMonday")));
                     }
-                }else if (res.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                }
+                else if (res.StatusCode == HttpStatusCode.InternalServerError)
                 {
-                    string errorMessage = string.Format("Monday.com is having technical issues. Your API Request did not go through. Query: {0}", query);
+                    string errorMessage = $"Monday.com is having technical issues. Your API Request did not go through. Query: {query}";
                     ExceptionLogService.LogException(new Exception(errorMessage, new Exception("BccMonday")));
                 }
             }
 
-            return null;
+            return default;
+        }
+
+        private T Mutation<T>(string query)
+        {
+            if (_isInitialized)
+            {
+                _request.AddJsonBody(new { query });
+                _request.AddHeader("API-Version", "2023-10");
+
+                var res = _client.Post(_request);
+
+                if (res.StatusCode == HttpStatusCode.OK)
+                {
+                    var content = res.Content;
+                    var queryData = JsonConvert.DeserializeObject<GraphQLResponse<T>>(content);
+
+                    if (queryData.Data != null)
+                    {
+                        return queryData.Data;
+                    }
+                    else if (queryData.Errors != null && queryData.Errors.Count > 0)
+                    {
+                        string errorMessage = queryData.Errors[0].Message;
+                        ExceptionLogService.LogException(new Exception($"{errorMessage} | query: {query}", new Exception("BccMonday")));
+                    }
+                }
+                else if (res.StatusCode == HttpStatusCode.InternalServerError)
+                {
+                    string errorMessage = $"Monday.com is having technical issues. Your API Request did not go through. Query: {query}";
+                    ExceptionLogService.LogException(new Exception(errorMessage, new Exception("BccMonday")));
+                }
+            }
+
+            return default(T);
         }
 
         private dynamic GetRootObject(dynamic data, string key)
@@ -623,5 +575,30 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         }
 
         # endregion
+    }
+
+    public class GraphQLResponse<T>
+    {
+        [JsonProperty("data")]
+        public T Data { get; set; }
+
+        [JsonProperty("errors")]
+        public List<GraphQlError> Errors { get; set; }
+    }
+
+    public class GraphQLMutation<T>
+    {
+        [JsonProperty("data")]
+        public T Data { get; set; }
+
+        [JsonProperty("errors")]
+        public List<GraphQlError> Errors { get; set; }
+    }
+
+    public class GraphQlError
+    {
+        [JsonProperty("message")]
+        public string Message { get; set; }
+        // Add other properties of the error object if needed
     }
 }

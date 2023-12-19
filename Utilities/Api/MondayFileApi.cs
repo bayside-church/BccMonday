@@ -147,7 +147,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
                     if (fileData != null)
                     {
-                        var uploadedFile = JsonConvert.DeserializeObject<File>(fileData);
+                        var uploadedFile = JsonConvert.DeserializeObject<Asset>(fileData);
                         return MondayApiResponse<IAsset>.CreateOkResponse(uploadedFile);
                     }
                 }
