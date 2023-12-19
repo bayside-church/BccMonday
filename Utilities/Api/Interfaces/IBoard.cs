@@ -22,7 +22,11 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// </summary>
         List<IColumn> Columns { get; set; }
 
-        List<IItem> Items { get; set; }
+        ItemsPage ItemsPage { get; set; }
+
+        string BoardType { get; set; }
+
+        Workspace Workspace { get; set; }
 
         /// <summary>
         /// Gets a Column by a specified Id.
