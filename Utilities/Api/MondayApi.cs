@@ -72,11 +72,9 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             if (!Initialize().IsOk())
                 return null;
 
-            var query = string.Empty;
-
-            query = parentUpdateId != null
-                ? @"mutation {
-                        create_update (item_id: " + itemId + ", body: \"" + body + "\", parent_id: " + parentUpdateId.Value + @") {
+            var query = parentUpdateId != null
+                ? @"mutation ($itemId: ID, $body: String!, $parentUpdateId: ID){
+                        create_update (item_id: $itemId, body: $body, parent_id: $parentUpdateId) {
                             id
                             body
                             text_body
@@ -88,8 +86,8 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                             }
                         }
                     }"
-                : @"mutation {
-                        create_update (item_id: " + itemId + ", body: \"" + body + "\"" + @") {
+                : @"mutation ($itemId: ID, $body: String!) {
+                        create_update (item_id: $itemId, body: $body) {
                             id
                             body
                             text_body
@@ -102,7 +100,14 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                         }
                     }";
 
-            var queryData = Query<CreateUpdateResponse>(query);
+            var variables = new Dictionary<string, object>()
+            {
+                { "itemId", itemId },
+                { "body", body },
+                { "parentId", parentUpdateId }
+            };
+
+            var queryData = Query<CreateUpdateResponse>(query, variables);
             var update = queryData.Update;
             return update;
         }
@@ -563,41 +568,6 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
             return default(T);
         }
-
-        private dynamic GetRootObject(dynamic data, string key)
-        {
-            if (data != null && data[key] != null)
-            {
-                if (data[key].GetType() == typeof(JArray))
-                {
-                    if (((JArray)data[key]).Count > 0) return data[key][0];
-                }
-                else
-                {
-                    if (((JObject)data[key]).Count > 0) return data[key][0];
-                }
-            }
-
-            return null;
-        }
-
-        private dynamic GetRootObjectList(dynamic data, string key)
-        {
-            if (data != null && data[key] != null)
-            {
-                if (data[key].GetType() == typeof(JArray))
-                {
-                    if (((JArray)data[key]).Count > 0) return data[key];
-                }
-                else
-                {
-                    if (((JObject)data[key]).Count > 0) return data[key];
-                }
-            }
-
-            return null;
-        }
-
         # endregion
     }
 }
