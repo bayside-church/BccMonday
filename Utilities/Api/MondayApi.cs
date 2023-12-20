@@ -55,7 +55,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             _client = new RestClient(MONDAY_API_URL);
             _request = new RestRequest("/")
                 .AddHeader("Authorization", _apiKey);
-            
+
             _isInitialized = true;
 
             return new MondayInitializeResponse()
@@ -112,8 +112,27 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             if (!Initialize().IsOk())
                 return false;
 
-            string query = "mutation { change_simple_column_value(board_id: " + boardId.ToString() + " column_id: \"" + columnId + "\" item_id:" + itemId.ToString() + " value: \"" + newValue + "\") { id } }";
-            var queryData = Query<ChangeSimpleColumnValueResponse>(query);
+            string query = @"
+                mutation ($boardId: ID!, $columnId: String!, $itemId: ID, $newValue: String){
+                    change_simple_column_value(
+                        board_id: $boardId
+                        column_id: $columnId
+                        item_id: $itemId
+                        value: $newValue)
+                        {
+                            id
+                        }
+                    }";
+
+            var variables = new Dictionary<string, object>()
+            {
+                { "boardId", boardId },
+                { "columnId", columnId },
+                { "itemId", itemId },
+                { "newValue", newValue }
+            };
+
+            var queryData = Query<ChangeSimpleColumnValueResponse>(query, variables);
             var item = queryData.Item;
 
             return item != null;
@@ -127,11 +146,10 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         {
             if (!Initialize().IsOk())
                 return null;
-            //MondayApiResponse<List<IAsset>>.CreateErrorResponse();
 
             var query = @"
-                query {
-                    assets (ids: [" + string.Join(",", ids) + @"]) {
+                query ($assetIds: [ID!]!) {
+                    assets (ids: [$assetIds]) {
                         id
                         public_url
                         name
@@ -140,9 +158,16 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                     }
                 }";
 
-            var queryData = Query<List<IAsset>>(query);
-            if (queryData.Count <= 0 ) return null;
-            return queryData;
+            var variables = new Dictionary<string, object>()
+            {
+                { "assetIds", string.Join(",", ids)}
+            };
+
+            var queryData = Query<GetAssetsResponse>(query, variables);
+            if (queryData == null) return null;
+            var assets = queryData.Assets;
+            if (assets.Count <= 0 ) return null;
+            return assets;
         }
 
         public IBoard GetBoard(long id)
@@ -151,8 +176,8 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 return null;
 
             var query = @"
-                query {
-                    boards (ids:" + id + @" limit:1) {
+                query ($boardId: ID!) {
+                    boards (ids: [$boardId] limit:1) {
   	                    name
   	                    id
                         columns {
@@ -164,12 +189,17 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 	                }
                 }
             ";
+            var variables = new Dictionary<string, object>()
+            {
+                { "boardId", id }
+            };
 
-            var queryData = Query<List<IBoard>>(query);
+            var queryData = Query<GetBoardsResponse>(query, variables);
+            if (queryData == null) return null;
+            var boards = queryData.Boards;
 
-            if (queryData.Count <= 0) return null;
-            var board = queryData[0];
-            return board;
+            if (boards.Count <= 0) return null;
+            return boards[0];
         }
 
         public string GetWorkspace(long boardId)
@@ -179,14 +209,19 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 return null;
             }
             var query = @"
-                query {
-                    boards(ids:" + boardId + @" ) {
+                query ($boardId: ID!){
+                    boards(ids: [$boardId] ) {
                         workspace {
                             name
                         }
                     }
                 }";
-            var queryData = Query<GetBoardWorkspaceResponse>(query);
+            var variables = new Dictionary<string, object>()
+            {
+                { "boardId", boardId }
+            };
+
+            var queryData = Query<GetBoardWorkspaceResponse>(query, variables);
             var board = queryData.Boards[0];
             var workspace = board.Workspace;
             return workspace.Name ?? null;
@@ -206,28 +241,11 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                     }
                 }";
 
-            var queryData = Query<List<IBoard>>(query);
-
-            if (queryData != null && queryData.Count > 0)
-            {
-                var boardJArray = new JArray();
-                foreach (var board in queryData)
-                {
-                    if (string.Equals(board.BoardType.ToString(), "board"))
-                    {
-                        boardJArray.Add(board);
-                    }
-                }
-
-                string boardArrayStr = Convert.ToString(boardJArray);
-                var boards = JsonConvert.DeserializeObject<List<Board>>(boardArrayStr);
-
-                if (boards != null && boards.Any())
-                {
-                    return boards.ConvertAll(o => (IBoard)o);
-                }
-            }
-            return null;
+            var queryData = Query<GetBoardsResponse>(query);
+            if (queryData == null) return null;
+            var boards = queryData.Boards;
+            boards = boards.Where(b => b.BoardType == "board").ToList();
+            return boards;
         }
 
         public IItem GetItem(long id)
@@ -236,8 +254,8 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 return null;
 
             var query = @"
-                query {
-                  items(ids: [" + id.ToString() + @"], limit: 1) {
+                query ($itemId: ID!) {
+                  items(ids: [$itemId], limit: 1) {
                     id
                     name
                     created_at
@@ -343,20 +361,19 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 }
             ";
 
-            var queryData = Query<List<IItem>>(query);
-            //GetRootObject
-            if (queryData != null && queryData.Count > 0)
+            var variables = new Dictionary<string, object>()
             {
-                var itemDetailStr = Convert.ToString(queryData[0]);
-                var item = JsonConvert.DeserializeObject<Item>(itemDetailStr);
+                { "itemId", id }
+            };
 
-                if (item != null)
-                {
-                    return item;
-                }
-            }
+            var queryData = Query<GetItemsResponse>(query, variables);
+            if (queryData == null) return null;
+            var items = queryData.Items;
 
-            return null;
+            if (items.Count == 0) return null;
+
+            var item = items[0];
+            return item;
         }
 
         public List<IItem> GetItemsByBoard(long boardId, string emailMatchColumnId, string statusColumnId)
@@ -368,16 +385,16 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
             // Initial query
             var initialQuery = @"
-    query {
-        boards(ids: " + boardId + @", limit: 1) {
+    query( $boardId: ID!, $emailColumnId: String!, $statusColumnId: String!) {
+        boards(ids: [$boardId], limit: 1) {
             id
-            items_page(limit: 20) {
+            items_page(limit: 500) {
                 cursor
                 items {
                     id
                     name
                     created_at
-                    column_values(ids: [" + "\"" + emailMatchColumnId + "\",\"" + statusColumnId + "\"" + @"]) {
+                    column_values(ids: [ $emailColumnId, $statusColumnId ]) {
                         id
                         text
                         type
@@ -387,14 +404,30 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                             title
                             settings_str
                         }
+                        ... on StatusValue {
+                        id
+                        value
+                        index
+                        statusLabel: label
+                        is_done
+                        label_style {
+                          color
+                          border
+                        }
+                      }
                     }
                 }
             }
         }
     }";
 
-            //var initialQueryData = Query(initialQuery);
-            var initialQueryData = Query <GetBoardsResponse> (initialQuery);
+            var variables = new Dictionary<string, object>()
+            {
+                { "boardId", boardId },
+                { "emailColumnId", emailMatchColumnId },
+                { "statusColumnId", statusColumnId }
+            };
+            var initialQueryData = Query <GetBoardsResponse> (initialQuery, variables);
             var board = initialQueryData.Boards[0];
             var itemsPage = board.ItemsPage;
             string cursor = itemsPage.Cursor;
@@ -408,57 +441,48 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
             while (!string.IsNullOrEmpty(cursor))
             {
-                var nextItemsQuery = @"
-    query {
-      next_items_page(
-        cursor: ""MSwxODE5OTg2MDMxLF8wRkhvZzVPU29jLVRoRE5aZl93Tyw1NywyMCx8MzYxNTIzNDk1Mw""
-        limit: 500
-      ) {
-        cursor
-        items {
-          id
-          name
-          created_at
-          column_values(ids: [""text"", ""status""]) {
-            id
-            text
-            type
-            value
-            column {
-              id
-              title
-              settings_str
-            }
-          }
-        }
-      }
-    }
-}";
-                    /*@"
-        query {
-            next_items_page(cursor: """ + cursor + @""", limit: 500) {
-                cursor
-                items {
-                    id
-                    name
-                    created_at
-                    column_values(ids: [""" + emailMatchColumnId + "\",\"" + statusColumnId + @"""]) {
-                        id
-                        text
-                        type
-                        value
-                        column {
-                            id
-                            title
-                            settings_str
+                var nextItemsQuery =
+                    @"query ($cursorVal: String, $emailColumnId: String!, $statusColumnId: String!) {
+                        next_items_page(cursor: $cursorVal, limit: 2) {
+                            cursor
+                            items {
+                                id
+                                name
+                                created_at
+                                column_values(ids: [$emailColumnId, $statusColumnId]) {
+                                    id
+                                    text
+                                    type
+                                    value
+                                    column {
+                                        id
+                                        title
+                                        settings_str
+                                    }
+                                    ... on StatusValue {
+                                        id
+                                        value
+                                        index
+                                        statusLabel: label
+                                        is_done
+                                        label_style {
+                                            color
+                                            border
+                                        }
+                                    }
+                                }
+                            }
                         }
-                    }
-                }
-            }
-        }";*/
+                    }";
 
-                //var nextQueryData = Query(nextItemsQuery);
-                var nextItemsPageData = Query<GetNextItemsPageResponse>(nextItemsQuery);
+                variables = new Dictionary<string, object>()
+                {
+                    {"cursorVal", cursor },
+                    { "emailColumnId", emailMatchColumnId },
+                    { "statusColumnId", statusColumnId }
+                };
+
+                var nextItemsPageData = Query<GetNextItemsPageResponse>(nextItemsQuery, variables);
                 if (nextItemsPageData == null) return allItems;
                 var nextItemsPage = nextItemsPageData.NextItemsPage;
                 cursor = nextItemsPage.Cursor;
@@ -472,12 +496,12 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
         #endregion
         #region private methods
-        private T Query<T>(string query)
+        private T Query<T>(string query, object variables = null)
         {
             if (_isInitialized)
             {
-                _request.AddJsonBody(new { query });
-                _request.AddHeader("API-Version", "2023-10");
+                _request.AddJsonBody(new { query, variables });
+                _request.AddHeader("API-Version", "2024-01");
 
                 var res = _client.Post(_request);
 

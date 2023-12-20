@@ -6,6 +6,7 @@ using Rock.Data;
 using Rock.Web.Cache;
 using com.baysideonline.BccMonday.Utilities.Api.Config;
 using Newtonsoft.Json;
+using com.baysideonline.BccMonday.Utilities.Api.Responses;
 
 namespace com.baysideonline.BccMonday.Utilities.Api
 {
@@ -141,15 +142,11 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
                 if(response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    var data = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(response.Content);
-                    //var fileData = (string)data["data"]["add_file_to_update"];
-                    var fileData = Convert.ToString(data["data"]["add_file_to_update"]);
-
-                    if (fileData != null)
-                    {
-                        var uploadedFile = JsonConvert.DeserializeObject<Asset>(fileData);
-                        return MondayApiResponse<IAsset>.CreateOkResponse(uploadedFile);
-                    }
+                    var graphQlResponse = JsonConvert.DeserializeObject<GraphQLResponse<AddFileToUpdateResponse>>(response.Content);
+                    var data = graphQlResponse.Data;
+                    var asset = data.Asset;
+                    
+                    return MondayApiResponse<IAsset>.CreateOkResponse(asset);
                 }
 
                 return MondayApiResponse<IAsset>.CreateErrorResponse();
@@ -164,5 +161,22 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
             return null;
         }
+
+        /*private T Query<T>(string query, object variables = null)
+        {
+            if (!_isInitialized)
+            {
+                Initialize();
+                if (!_isInitialized)
+                {
+                    return default(T);
+                }
+            }
+
+            _request.AddHeader("Content-Type", "multipart/form-data");
+            _request.AddParameter("query", query);
+            _request.AddFile("variables[file]", bytes, fileName);
+        }
+        */
     }
 }
