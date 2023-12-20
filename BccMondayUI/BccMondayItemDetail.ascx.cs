@@ -202,7 +202,7 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
                     var newUpdate = api.AddUpdateToItem(mondayItemId, sanitizedUpdateBody);
                     var updatePosted = newUpdate != null;
 
-                    DebugLogException(String.Format("Monday Item Id: {0}, " +
+                    DebugLogException(string.Format("Monday Item Id: {0}, " +
                         "Current Person: {1}, " +
                         "Email: {2}, " +
                         "Update Posted: {3}, " +
@@ -210,23 +210,17 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
 
                     if (updatePosted)
                     {
-                        IFile fileUploaded = null;
+                        IAsset fileUploaded = null;
                         if (fsFile.BinaryFileId.HasValue)
                         {
                             var binaryFileId = fsFile.BinaryFileId.Value;
                             var binaryFileService = new BinaryFileService(context);
                             var binaryFile = binaryFileService.Get(binaryFileId);
-                            var fileApi = new MondayFileApi();
-                            fileUploaded = fileApi.AddFileToUpdate(newUpdate.Id, binaryFile)?.Data;
+                            var fileApi = new MondayApi(MondayApiType.File);
+                            fileUploaded = fileApi.AddFileToUpdate(newUpdate.Id, binaryFile);
                             if (fileUploaded == null)
                             {
                                 ShowError("Sorry, we were unable to upload the file you selected.");
-                                //DebugLogException(string.Format("The file was unable to upload: File Name: {0}," +
-                                //    " File Size: {1}, " +
-                                //    " Monday.com Update Id: {2}," +
-                                //    " Monday.com Item: {{ Name: {3}, Id: {4} }}" +
-                                //    " Person: {{ Name: {5}, Email: {6} }}",
-                                //    binaryFile.FileName, binaryFile.FileSize, newUpdate.Id, Item.Name, Item.Id, CurrentPerson.FullName, CurrentPerson.Email));
                                 var fileError = string.Format("The file was unable to upload: File Name: {0}," +
                                     " File Size: {1}, " +
                                     " Monday.com Update Id: {2}," +
@@ -245,13 +239,13 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
                             fsFile.Controls.Clear();
                         }
 
-                        var files = new List<IFile>();
+                        var files = new List<IAsset>();
                         if (fileUploaded != null)
                         {
                             files.Add(fileUploaded);
                         }
 
-                        newUpdate.Files = new List<IFile> { fileUploaded };
+                        newUpdate.Files = new List<IAsset> { fileUploaded };
                         newUpdate.Replies = new List<IUpdate>();
 
                         GetItem().Updates.Insert(0, newUpdate);
@@ -600,7 +594,7 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
         /// </summary>
         /// <param name="update">The Monday.com update</param>
         /// <returns></returns>
-        protected List<IFile> GetFiles(object update)
+        protected List<IAsset> GetFiles(object update)
         {
             IUpdate u = update as Update;
             return u?.Files;
@@ -724,7 +718,7 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
                 var statusColumnValue = Item.ColumnValues[StatusIndex.Value];
                 var currentStatus = statusColumnValue.Text;
 
-                var currentColor = ((ColorColumnValue)statusColumnValue).Color;
+                var currentColor = ((StatusColumnValue)statusColumnValue).LabelStyle.Color;
                 return currentColor;
             }
             return string.Empty;

@@ -427,7 +427,7 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
             {
                 var rowIndex = e.Row.RowIndex;
                 var statusIndex = Items[0].ColumnValues.FindIndex(c => c.ColumnId == Board.MondayStatusColumnId);
-                var columnValue = Items[rowIndex].ColumnValues[statusIndex] as ColorColumnValue;
+                var columnValue = Items[rowIndex].ColumnValues[statusIndex] as StatusColumnValue;
 
                 var root = new LiteralControl();
                 var stringWriter = new StringWriter();
@@ -436,7 +436,7 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
                 //TODO(Noah): The color will always be lightgrey if the Column is null.
                 //  Fixed in new updates. It parses the "additional_info" property
                 writer.AddAttribute(HtmlTextWriterAttribute.Class, "text-center");
-                writer.AddStyleAttribute("background-color", columnValue?.Color ?? string.Empty);
+                writer.AddStyleAttribute("background-color", columnValue?.LabelStyle.Color ?? string.Empty);
                 writer.AddStyleAttribute("text-overflow", "ellipsis");
                 writer.AddStyleAttribute("white-space", "nowrap");
                 writer.AddStyleAttribute("overflow", "hidden");
