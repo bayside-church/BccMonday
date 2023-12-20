@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace com.baysideonline.BccMonday.Utilities.Api.Responses
 {
-    public class ChangeSimpleColumnValueResponse
+    public class AddFileToUpdateResponse
     {
-        [JsonProperty("change_simple_column_value", ItemConverterType = typeof(ConcreteConverter<IItem, Item>))]
-        public IItem Item { get; set; }
+        [JsonProperty("add_file_to_update", ItemConverterType = typeof(ConcreteConverter<IAsset, Asset>))]
+        public IAsset Asset { get; set; }
     }
 }

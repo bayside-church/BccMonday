@@ -9,7 +9,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Responses
 {
     public class CreateUpdateResponse
     {
-        [JsonProperty("create_update")]
+        [JsonProperty("create_update", ItemConverterType = typeof(ConcreteConverter<IUpdate, Update>))]
         public IUpdate Update { get; set; }
     }
 }

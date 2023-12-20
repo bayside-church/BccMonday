@@ -9,7 +9,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Responses
 {
     public class GetAssetsResponse
     {
-        [JsonProperty("assets")]
+        [JsonProperty("assets", ItemConverterType = typeof(ConcreteConverter<IAsset, Asset>))]
         public List<IAsset> Assets { get; set; }
     }
 }
