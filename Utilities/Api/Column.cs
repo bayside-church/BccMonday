@@ -6,25 +6,25 @@ namespace com.baysideonline.BccMonday.Utilities.Api
     public class Column : IColumn
     {
         /// <summary>
-        /// The column's unique identifier.
+        /// <inheritdoc/>
         /// </summary>
         [JsonProperty("id")]
         public string Id { get; set; }
 
         /// <summary>
-        /// The coilumn's title.
+        /// <inheritdoc/>
         /// </summary>
         [JsonProperty("title")]
         public string Title { get; set; }
 
         /// <summary>
-        /// The column's type.
+        /// <inheritdoc/>
         /// </summary>
         [JsonProperty("type")]
         public string Type { get; set; }
 
         /// <summary>
-        /// The column's settings in a string form.
+        /// <inheritdoc/>
         /// </summary>
         [JsonProperty("settings_str")]
         public string Options { get; set; }

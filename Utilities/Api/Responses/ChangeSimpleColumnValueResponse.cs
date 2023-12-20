@@ -1,12 +1,10 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace com.baysideonline.BccMonday.Utilities.Api.Responses
 {
+    /// <summary>
+    /// Change an item's column with simple value Response
+    /// </summary>
     public class ChangeSimpleColumnValueResponse
     {
         [JsonProperty("change_simple_column_value", ItemConverterType = typeof(ConcreteConverter<IItem, Item>))]

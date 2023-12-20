@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Rock.Model;
+using System.Collections.Generic;
 
 namespace com.baysideonline.BccMonday.Utilities.Api
 {
@@ -64,5 +65,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         IBoard GetBoard(long id);
 
         List<IBoard> GetBoards();
+
+        IAsset AddFileToUpdate(long updateId, BinaryFile binaryFile);
     }
 }

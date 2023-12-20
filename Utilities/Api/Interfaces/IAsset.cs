@@ -1,5 +1,4 @@
-﻿
-namespace com.baysideonline.BccMonday.Utilities.Api
+﻿namespace com.baysideonline.BccMonday.Utilities.Api
 {
     public interface IAsset
     {

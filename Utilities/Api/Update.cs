@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using com.baysideonline.BccMonday.Utilities.Api.Interfaces;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -7,12 +8,17 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 {
     public class Update : IUpdate
     {
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         [JsonProperty("id")]
         public long Id { get; set; }
 
-
         private string _body { get; set; }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         [JsonProperty("body")]
         public string Body
         {
@@ -22,6 +28,9 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
         private string _textBody { get; set; }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         [JsonProperty("text_body")]
         public string TextBody
         {
@@ -30,6 +39,10 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         }
 
         private DateTime _createdAt;
+
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         [JsonProperty("created_at")]
         public DateTime CreatedAt
         {
@@ -37,24 +50,43 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             set => _createdAt = value.ToLocalTime();
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         [JsonProperty("creator")]
-        public MondayCreator Creator { get; set; }
+        public IMondayUser Creator { get; set; }
 
 
         private string _creatorName { get; set; }
+
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public string CreatorName => _creatorName ?? Creator.Name;
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         [JsonProperty("creator_id")]
         public string CreatorId { get; set; }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         [JsonProperty("assets", ItemConverterType =typeof(ConcreteConverter<IAsset, Asset>))]
-        public List<IAsset> Files { get; set; }
+        public List<IAsset> Assets { get; set; }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         [JsonProperty("replies", ItemConverterType = typeof(ConcreteConverter<IUpdate, Update>))]
         public List<IUpdate> Replies { get; set; }
 
-        // returns true if the update is created by a user that shouldn't be displayed in Rock
-        // - Automations user (id = -4)
+        /// <summary>
+        /// returns true if the update is created by a user that shouldn't be displayed in Rock. Automations user (id = -4)
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
         private bool IsNotBlacklistedUser(dynamic data)
         {
             if (data["creator"]["id"] != null && data["creator"]["id"].Value == -4)
@@ -106,14 +138,5 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
             return null;
         }
-    }
-
-    public class MondayCreator
-    {
-        [JsonProperty("name")]
-        public string Name { get; set; }
-
-        [JsonProperty("id")]
-        public string CreatorId { get; set; }
     }
 }

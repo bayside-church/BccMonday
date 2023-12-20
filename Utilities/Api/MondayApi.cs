@@ -512,12 +512,17 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             {
                 var nextItemsQuery =
                     @"query ($cursorVal: String, $emailColumnId: String!, $statusColumnId: String!) {
-                        next_items_page(cursor: $cursorVal, limit: 2) {
+                        next_items_page(cursor: $cursorVal, limit: 1) {
                             cursor
                             items {
                                 id
                                 name
                                 created_at
+                            }
+                        }
+                    }
+";
+/*
                                 column_values(ids: [$emailColumnId, $statusColumnId]) {
                                     id
                                     text
@@ -543,10 +548,11 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                             }
                         }
                     }";
+*/
 
                 variables = new Dictionary<string, object>()
                 {
-                    {"cursorVal", cursor },
+                    { "cursorVal", cursor },
                     { "emailColumnId", emailMatchColumnId },
                     { "statusColumnId", statusColumnId }
                 };

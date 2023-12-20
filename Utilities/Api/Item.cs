@@ -11,13 +11,13 @@ namespace com.baysideonline.BccMonday.Utilities.Api
     public class Item : IItem
     {
         /// <summary>
-        /// the item's unique identifier.
+        /// <inheritdoc/>
         /// </summary>
         [JsonProperty("id")]
         public long Id { get; set; }
-        
+
         /// <summary>
-        /// The item's name.
+        /// <inheritdoc/>
         /// </summary>
         [JsonProperty("name")]
         public string Name { get; set; }
@@ -25,7 +25,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         private DateTime _createdAt;
 
         /// <summary>
-        /// the item's create date.
+        /// <inheritdoc/>
         /// </summary>
         [JsonProperty("created_at")]
         public DateTime CreatedAt
@@ -42,22 +42,24 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         }
 
         /// <summary>
-        /// The board that contains this item.
+        /// <inheritdoc/>
         /// </summary>
         [JsonProperty("board", ObjectCreationHandling = ObjectCreationHandling.Replace)]
         [JsonConverter(typeof(ConcreteConverter<IBoard, Board>))]
         public IBoard Board { get; set; }
 
         /// <summary>
-        /// The item's column values.
+        /// <inheritdoc/>
         /// </summary>
-        [JsonProperty("column_values", ItemConverterType = typeof(Interfaces.ColumnValueConverter))]
+        [JsonProperty("column_values")]
+        [JsonConverter(typeof(Interfaces.ColumnValueConverter))]
         public List<Interfaces.AbstractColumnValue> ColumnValues { get; set; }
 
         /// <summary>
-        /// The item's updates.
+        /// <inheritdoc/>
         /// </summary>
-        [JsonProperty("updates", ItemConverterType = typeof(ConcreteConverter<IUpdate, Update>))]
+        [JsonProperty("updates")]
+        [JsonConverter(typeof(ConcreteConverter<IUpdate, Update>))]
         public List<IUpdate> Updates { get; set; }
 
         public string GetRequestorEmail(string columnId)

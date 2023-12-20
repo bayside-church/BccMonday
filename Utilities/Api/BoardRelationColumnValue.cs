@@ -8,13 +8,11 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 {
     public class BoardRelationColumnValue : AbstractColumnValue
     {
-        public List<long> ItemIds { get; set; }
-
         /// <summary>
-        /// A string representing all the names of the linkted items, separated by commas
+        /// A string representing all the names of the linked items, separated by commas
         /// </summary>
         [JsonProperty("display_value")]
-        public string DispalyValue { get; set; }
+        public string DisplayValue { get; set; }
 
         /// <summary>
         /// The linked items IDs
@@ -37,7 +35,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             writer.AddStyleAttribute("min-width", "200px");
             writer.RenderBeginTag(HtmlTextWriterTag.Div);
 
-            foreach(var linkedItemId in ItemIds)
+            foreach(var linkedItemId in LinkedItemIds)
             {
                 var url = page.Request.Url.ToString();
                 var query = page.Request.Url.Query;

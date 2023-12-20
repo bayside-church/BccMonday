@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace com.baysideonline.BccMonday.Utilities.Api.Responses
 {
+    /// <summary>
+    /// Create a new update Response
+    /// </summary>
     public class CreateUpdateResponse
     {
         [JsonProperty("create_update", ItemConverterType = typeof(ConcreteConverter<IUpdate, Update>))]
