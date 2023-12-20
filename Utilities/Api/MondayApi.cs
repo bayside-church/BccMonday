@@ -518,11 +518,6 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                                 id
                                 name
                                 created_at
-                            }
-                        }
-                    }
-";
-/*
                                 column_values(ids: [$emailColumnId, $statusColumnId]) {
                                     id
                                     text
@@ -548,7 +543,6 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                             }
                         }
                     }";
-*/
 
                 variables = new Dictionary<string, object>()
                 {
