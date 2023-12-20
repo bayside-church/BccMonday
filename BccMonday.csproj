@@ -46,6 +46,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\Api\Board.cs" />
     <Compile Include="Utilities\Api\ColorColumn.cs" />
+    <Compile Include="Utilities\Api\GraphQLResponse.cs" />
     <Compile Include="Utilities\Api\Responses\AddFileToUpdateResponse.cs" />
     <Compile Include="Utilities\Api\Responses\ChangeSimpleColumnValueResponse.cs" />
     <Compile Include="Utilities\Api\Responses\CreateUpdateResponse.cs" />

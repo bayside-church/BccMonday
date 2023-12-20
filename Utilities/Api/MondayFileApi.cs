@@ -125,8 +125,8 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             {
                 var bytes = webClient.DownloadData(filePath);
                 string query = @"
-                        mutation ($file: File!) {
-                            add_file_to_update(file: $file, update_id: " + updateId + @") {
+                        mutation ($file: File!, $updateId: ID!) {
+                            add_file_to_update(file: $file, update_id: $updateId) {
                                 id
                                 file_size
                                 name

@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using RestSharp;
 using Rock.Data;
 using Rock.Model;
+using Rock.Web.Cache;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,17 +13,36 @@ using System.Net;
 
 namespace com.baysideonline.BccMonday.Utilities.Api
 {
+    public enum MondayApiType
+    {
+        Standard,
+        File
+    }
+
+    public class MondayApiUrls
+    {
+        public static readonly Dictionary<MondayApiType, string> Urls = new Dictionary<MondayApiType, string>
+        {
+            { MondayApiType.Standard, "https://api.monday.com/v2" },
+            { MondayApiType.File, "https://api.monday.com/v2/file" }
+        };
+    }
+
     public class MondayApi : IMondayApi
     {
-        private readonly string MONDAY_API_URL = "https://api.monday.com/v2";
-
+        private readonly string _apiUrl;
         private string _apiKey;
-
         protected IRestClient _client;
-
         protected IRestRequest _request;
-
         protected bool _isInitialized = false;
+
+        public MondayApi(MondayApiType apiType = MondayApiType.Standard)
+        {
+            if (!MondayApiUrls.Urls.TryGetValue(apiType, out _apiUrl))
+            {
+                throw new ArgumentException("Invalid API Type specified", nameof(apiType));
+            }
+        }
 
         public MondayInitializeResponse Initialize()
         {
@@ -52,7 +72,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             }
 
             // initialize rest client & rest request
-            _client = new RestClient(MONDAY_API_URL);
+            _client = new RestClient(_apiUrl);
             _request = new RestRequest("/")
                 .AddHeader("Authorization", _apiKey);
 
@@ -143,6 +163,50 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             return item != null;
         }
 
+        public IAsset AddFileToUpdate(long updateId, BinaryFile binaryFile)
+        {
+            if (!Initialize().IsOk())
+            {
+                return null;
+            }
+
+            var filePath = new Uri(GlobalAttributesCache.Get().GetValue("PublicApplicationRoot"))
+                + $"GetFile.ashx?id={binaryFile.Id}";
+            var fileName = binaryFile.FileName;
+            var fileSize = binaryFile.FileSize;
+            const long MAX_BYTES = 100000000;
+
+            if (fileSize > MAX_BYTES)
+            {
+                return null;
+            }
+
+            using (WebClient webClient = new WebClient())
+            {
+                var bytes = webClient.DownloadData(filePath);
+                string query = @"
+                        mutation ($file: File!, $updateId: ID!) {
+                            add_file_to_update(file: $file, update_id: $updateId) {
+                                id
+                                file_size
+                                name
+                                public_url
+                                url_thumbnail
+                            }
+                        }";
+
+                var variables = new Dictionary<string, object>
+                {
+                    { "updateId", updateId }
+                };
+
+                var data = FileQuery<AddFileToUpdateResponse>(query, bytes, fileName, variables);
+                if (data == null) return null;
+                var asset = data.Asset;
+
+                return asset;
+            }
+        }
         #endregion
 
         #region queries
@@ -533,6 +597,36 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             }
 
             return default;
+        }
+
+        private T FileQuery<T>(string query, byte[] bytes, string fileName, object variables = null)
+        {
+            _request.AddHeader("Content-Type", "multipart/form-data");
+            _request.AddJsonBody(new { query, variables });
+            _request.AddFile("variables[file]", bytes, fileName);
+            var response = _client.Execute(_request);
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                var queryData = JsonConvert.DeserializeObject<GraphQLResponse<T>>(response.Content);
+
+                if (queryData.Data != null)
+                {
+                    return queryData.Data;
+                }
+                else if (queryData.Errors != null && queryData.Errors.Count > 0)
+                {
+                    string errorMessage = queryData.Errors[0].Message;
+                    ExceptionLogService.LogException(new Exception($"{errorMessage} | query: {query}", new Exception("BccMonday")));
+                }
+            }
+            else if (response.StatusCode == HttpStatusCode.InternalServerError)
+            {
+                string errorMessage = $"Monday.com is having technical issues. Your API Request did not go through. Query: {query}";
+                ExceptionLogService.LogException(new Exception(errorMessage, new Exception("BccMonday")));
+            }
+
+            return default(T);
         }
 
         private T Mutation<T>(string query)
