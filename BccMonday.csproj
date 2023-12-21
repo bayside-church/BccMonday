@@ -45,8 +45,12 @@
     <Compile Include="Models\BccMondayBoardService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\Api\Board.cs" />
-    <Compile Include="Utilities\Api\ColorColumn.cs" />
     <Compile Include="Utilities\Api\GraphQLResponse.cs" />
+    <Compile Include="Utilities\Api\Interfaces\IItemsPage.cs" />
+    <Compile Include="Utilities\Api\Interfaces\IMondayUser.cs" />
+    <Compile Include="Utilities\Api\Interfaces\IWorkspace.cs" />
+    <Compile Include="Utilities\Api\ItemsPage.cs" />
+    <Compile Include="Utilities\Api\MondayUser.cs" />
     <Compile Include="Utilities\Api\Responses\AddFileToUpdateResponse.cs" />
     <Compile Include="Utilities\Api\Responses\ChangeSimpleColumnValueResponse.cs" />
     <Compile Include="Utilities\Api\Responses\CreateUpdateResponse.cs" />
@@ -57,7 +61,6 @@
     <Compile Include="Utilities\Api\Responses\GetNextItemsPageResponse.cs" />
     <Compile Include="Utilities\Api\StatusColumnValue.cs" />
     <Compile Include="Utilities\Api\Column.cs" />
-    <Compile Include="Utilities\Api\ColumnFactory.cs" />
     <Compile Include="Utilities\Api\ColumnValue.cs" />
     <Compile Include="Utilities\Api\Config\IMondayApiKey.cs" />
     <Compile Include="Utilities\Api\Config\MondayApiKey.cs" />
@@ -67,20 +70,17 @@
     <Compile Include="Utilities\Api\Interfaces\ColumnValueConverter.cs" />
     <Compile Include="Utilities\Api\Interfaces\IBoard.cs" />
     <Compile Include="Utilities\Api\Interfaces\IColumn.cs" />
-    <Compile Include="Utilities\Api\Interfaces\IColumnValue.cs" />
     <Compile Include="Utilities\Api\Interfaces\IAsset.cs" />
     <Compile Include="Utilities\Api\Interfaces\IItem.cs" />
-    <Compile Include="Utilities\Api\Interfaces\IMondayFileApi.cs" />
     <Compile Include="Utilities\Api\Item.cs" />
     <Compile Include="Utilities\Api\BoardRelationColumnValue.cs" />
     <Compile Include="Utilities\Api\Interfaces\IMondayApi.cs" />
     <Compile Include="Utilities\Api\Interfaces\IUpdate.cs" />
     <Compile Include="Utilities\Api\MondayApi.cs" />
     <Compile Include="Utilities\Api\Interfaces\ConcreteConverter.cs" />
-    <Compile Include="Utilities\Api\MondayFileApi.cs" />
     <Compile Include="Utilities\Api\MondayStatuses.cs" />
     <Compile Include="Utilities\Api\Update.cs" />
-    <Compile Include="Utilities\Api\ColumnValueFactory.cs" />
+    <Compile Include="Utilities\Api\Workspace.cs" />
     <Compile Include="Utilities\Guids.cs" />
   </ItemGroup>
   <ItemGroup>
