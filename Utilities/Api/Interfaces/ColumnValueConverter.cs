@@ -73,7 +73,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Interfaces
                                 }
                             }
 
-                            columnValue = new BoardRelationColumnValue { ItemIds = itemIds };
+                            columnValue = new BoardRelationColumnValue { LinkedItemIds = itemIds };
                         }
                         
                         break;
