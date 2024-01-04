@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Web.UI;
 
-namespace com.baysideonline.BccMonday.Utilities.Api
+namespace com.baysideonline.BccMonday.Utilities.Api.Schema
 {
     public class BoardRelationColumnValue : AbstractColumnValue
     {

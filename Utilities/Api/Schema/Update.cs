@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-namespace com.baysideonline.BccMonday.Utilities.Api
+namespace com.baysideonline.BccMonday.Utilities.Api.Schema
 {
     public class Update : IUpdate
     {

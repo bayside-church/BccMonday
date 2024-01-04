@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 
-namespace com.baysideonline.BccMonday.Utilities.Api
+namespace com.baysideonline.BccMonday.Utilities.Api.Schema
 {
     public class Column : IColumn
     {

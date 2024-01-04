@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace com.baysideonline.BccMonday.Utilities.Api
+namespace com.baysideonline.BccMonday.Utilities.Api.Schema
 {
     /// <summary>
     /// An item (table row).

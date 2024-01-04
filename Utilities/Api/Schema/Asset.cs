@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace com.baysideonline.BccMonday.Utilities.Api
+namespace com.baysideonline.BccMonday.Utilities.Api.Schema
 {
     /// <summary>
     /// A file uploaded to <see href="https://monday.com"/>
