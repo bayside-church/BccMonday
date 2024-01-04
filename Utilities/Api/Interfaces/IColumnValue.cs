@@ -3,13 +3,13 @@ using Newtonsoft.Json;
 
 namespace com.baysideonline.BccMonday.Utilities.Api.Interfaces
 {
-    [JsonConverter(typeof(ColumnValueConverter))]
-    public abstract class AbstractColumnValue
+    /*
+    public interface IColumnValue
     {
+        /*
         /// <summary>
         /// the column that this value belongs to.
         /// </summary>
-        [JsonProperty("id")]
         public string ColumnId { get; set; }
 
         /// <summary>
@@ -38,4 +38,5 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Interfaces
 
         public abstract Control CreateControl(Page page);
     }
+    */
 }

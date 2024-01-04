@@ -280,7 +280,10 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             var query = @"
                 query ($boardId: ID!){
                     boards(ids: [$boardId] ) {
+                        id
+                        name
                         workspace {
+                            id
                             name
                         }
                     }
@@ -290,7 +293,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 { "boardId", boardId }
             };
 
-            var queryData = Query<GetBoardWorkspaceResponse>(query, variables);
+            var queryData = Query<GetBoardsResponse>(query, variables);//GetBoardWorkspaceResponse>(query, variables);
             var board = queryData.Boards[0];
             var workspace = board.Workspace;
             return workspace.Name ?? null;

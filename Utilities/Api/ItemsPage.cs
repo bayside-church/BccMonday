@@ -9,14 +9,14 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <summary>
         /// <inheritdoc/>
         /// </summary>
-        [JsonProperty("cursor", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty("cursor", Required = Required.AllowNull, NullValueHandling = NullValueHandling.Include)]
         public string Cursor { get; set; }
 
         /// <summary>
         /// <inheritdoc/>
         /// </summary>
         [JsonProperty("items", NullValueHandling = NullValueHandling.Ignore)]
-        [JsonConverter(typeof(ConcreteConverter<IItem, Item>))]
+        [JsonConverter(typeof(ListItemConverter<IItem, Item>))]
         public List<IItem> Items { get; set; }
     }
 }

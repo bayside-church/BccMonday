@@ -30,7 +30,8 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <summary>
         /// <inheritdoc/>
         /// </summary>
-        [JsonProperty("items_page")]
+        [JsonProperty("items_page", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonConverter(typeof(ConcreteConverter<IItemsPage, ItemsPage>))]
         public IItemsPage ItemsPage { get; set; }
 
         /// <summary>
@@ -43,7 +44,15 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <inheritdoc/>
         /// </summary>
         [JsonProperty("workspace", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonConverter(typeof(ConcreteConverter<IWorkspace, Workspace>))]
         public IWorkspace Workspace { get; set; }
+        /*
+        public IWorkspace Workspace
+        {
+            get => ConcreteWorkspace;
+            set => ConcreteWorkspace = (Workspace)value;
+        }
+        */
 
         /// <inheritdoc/>
         public IColumn GetColumn(string id)

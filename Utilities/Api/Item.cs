@@ -52,14 +52,14 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <inheritdoc/>
         /// </summary>
         [JsonProperty("column_values")]
-        [JsonConverter(typeof(Interfaces.ColumnValueConverter))]
+        //[JsonConverter(typeof(Interfaces.ColumnValueConverter))]
         public List<Interfaces.AbstractColumnValue> ColumnValues { get; set; }
 
         /// <summary>
         /// <inheritdoc/>
         /// </summary>
         [JsonProperty("updates")]
-        [JsonConverter(typeof(ConcreteConverter<IUpdate, Update>))]
+        [JsonConverter(typeof(ListItemConverter<IUpdate, Update>))]
         public List<IUpdate> Updates { get; set; }
 
         public string GetRequestorEmail(string columnId)

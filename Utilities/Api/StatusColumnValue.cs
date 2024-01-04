@@ -66,6 +66,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             /// <summary>
             /// The label's color in hex format.
             /// </summary>
+            [JsonProperty("color")]
             public string Color { get; set; }
         }
     }

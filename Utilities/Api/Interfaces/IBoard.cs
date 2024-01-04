@@ -26,7 +26,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         IItemsPage ItemsPage { get; set; }
 
         /// <summary>
-        /// the board object type.
+        /// The board object type.
         /// </summary>
         string BoardType { get; set; }
 
