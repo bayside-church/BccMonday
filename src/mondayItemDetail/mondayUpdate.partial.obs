@@ -1,0 +1,37 @@
+<template>
+    <div id="mondayUpdate" class="bcc-monday-well-group">
+        <div class="well">
+            <p v-text="update.textBody"></p>
+            <div>
+                <span class="font-weight-bold" v-text="update.creatorName"></span>
+                <span v-text="update.createdAt"></span>
+            </div>
+            <template v-for="file in update.files">
+                <MondayFile></MondayFile>
+            </template>
+        </div>
+        <template v-for="reply in update.replies" :key="reply.Id">
+            <MondayReply></MondayReply>
+        </template>
+    </div>
+</template>
+
+<script setup lang="ts">
+import { PropType, computed, inject, onMounted, ref } from "vue";
+import type { MondayUpdateBag, MondayItemDetailBag } from "../ViewModels/MondayItemDetailBag";
+import MondayReply from "./mondayReply.partial.obs";
+import MondayFile from "./mondayFile.partial.obs"
+
+const notFound = ref(false);
+const props = defineProps({
+    update: {
+        type: Object as PropType<MondayUpdateBag>,
+        required: true
+    }
+})
+
+
+const item = inject("mondayItemBag") as MondayItemDetailBag;
+const updates = item.updates;
+
+</script>

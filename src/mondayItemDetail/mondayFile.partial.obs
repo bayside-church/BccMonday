@@ -1,0 +1,15 @@
+<template>
+    <a :href="file?.publicUrl" v-text="file?.name"></a>
+    <br>
+</template>
+
+<script setup lang="ts">
+import { PropType } from 'vue';
+import type { MondayAssetBag } from '../ViewModels/MondayItemDetailBag';
+
+const props = defineProps({
+    file: {
+        type: Object as PropType<MondayAssetBag | null>
+    }
+});
+</script>
