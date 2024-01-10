@@ -3,6 +3,7 @@ export type MondayItemDetailBag = {
     name: string;
     createdAt: string;
     updates: MondayUpdateBag[]
+    columnValues: AbstractColumnValue[]
 }
 
 export type MondayUpdateBag = {
@@ -20,12 +21,60 @@ export type MondayAssetBag = {
     publicUrl: string;
 }
 
-export type ColumnValue = {
+export type ColumnValueBag = {
     id: number | string;
     text: string;
-    type: ColumnType;
+    type: keyof typeof ColumnType;
     value: string;
 }
+
+export type BasicColumnValue = {
+    id: number | string;
+    text: string;
+    type: keyof typeof ColumnType;
+    value: string;
+}
+
+export type Column = {
+
+}
+
+export type FileColumnValue = BasicColumnValue & {
+    files: {
+        asset_id: string;
+        asset: {
+            url: string;
+            name: string;
+            url_thumbnail: string;
+            public_url: string;
+        };
+    }
+}
+
+export type StatusColumnValue = BasicColumnValue & {
+    index: number;
+    statusLabel: string;
+    isDone: boolean;
+    labelStyle: {
+        color: string;
+        border: string;
+    }
+}
+
+export type BoardRelationColumnValue = BasicColumnValue & {
+    displayValue: string;
+    linkedItems: {
+        id: string;
+        relativeLink: string;
+    }
+    linkedItemIds: string[]
+}
+
+export type AbstractColumnValue =
+    BoardRelationColumnValue
+    | FileColumnValue
+    | StatusColumnValue
+    | BasicColumnValue
 
 export enum ColumnType {
     auto_number,

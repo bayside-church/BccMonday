@@ -7,11 +7,11 @@
                 <span v-text="update.createdAt"></span>
             </div>
             <template v-for="file in update.files">
-                <MondayFile></MondayFile>
+                <MondayFile :file="file"></MondayFile>
             </template>
         </div>
         <template v-for="reply in update.replies" :key="reply.Id">
-            <MondayReply></MondayReply>
+            <!-- <MondayReply :reply-="reply"></MondayReply> -->
         </template>
     </div>
 </template>

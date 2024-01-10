@@ -1,5 +1,5 @@
 <template>
-    <a :href="file?.publicUrl" v-text="file?.name"></a>
+    <a :href="file.publicUrl" v-text="file.name"></a>
     <br>
 </template>
 
@@ -9,7 +9,7 @@ import type { MondayAssetBag } from '../ViewModels/MondayItemDetailBag';
 
 const props = defineProps({
     file: {
-        type: Object as PropType<MondayAssetBag | null>
+        type: Object as PropType<MondayAssetBag>
     }
 });
 </script>

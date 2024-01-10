@@ -15,7 +15,7 @@
                 <i class="fa fa-reply fa-rotate-180 fa-2x m-2"></i>
             </div>
             <div class="d-flex flex-column justify-content-center w-100">
-                <TextBox id="tbNewReply" v-model="text" textMode="multiline" :rows="5" class="mb-2" placeholder="Write a new reply..."></TextBox>
+                <!-- <TextBox id="tbNewReply" v-model="text" textMode="multiline" :rows="5" class="mb-2" placeholder="Write a new reply..."></TextBox> -->
                 <div>
                     <RockButton id="bbtnNewReplyOpen" class="btn btn-secondary">New Reply</RockButton>
                     <RockButton id="bbtnNewReplySave" class="btn btn-primary">Save</RockButton>
@@ -23,6 +23,7 @@
                 </div>
             </div>
         </div>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -35,4 +36,6 @@ const props = defineProps({
         required: true
     }
 });
+
+const text = ref("");
 </script>

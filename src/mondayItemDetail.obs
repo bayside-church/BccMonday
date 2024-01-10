@@ -3,32 +3,34 @@
         <div class="panel-heading bcc-monday-panel-heading row">
             <div class="col-xs-6 p-0">
                 <h1 class="panel-title d-flex flex-column justify-content-center">
-                    <div v-text="item.Name"></div>
+                    <div v-text="item.name"></div>
                     <div>
-                        <span class="text-muted" style="font-size: 0.8rem;" v-text="item.CreatedAt"></span>
+                        <span class="text-muted" style="font-size: 0.8rem;" v-text="item.createdAt"></span>
                     </div>
                 </h1>
             </div>
             <div class="col-xs-6 text-right p-0">
-                <RockButton id="bbtnApprove" class="btn btn-secondary" @click="bbtnApprove_Click">Approve Request</RockButton>
-                <RockButton id="bbtnClose" class="btn btn-secondary" @click="bbtnClose_Click">Close Request</RockButton>
+                <RockButton id="bbtnApprove" class="btn btn-secondary" >Approve Request</RockButton>
+                <RockButton id="bbtnClose" class="btn btn-secondary" >Close Request</RockButton>
             </div>
         </div>
         <div class="panel-body" style="width:100%">
             <div class="bcc-monday-column-group">
                 <div class="d-flex mb-3 flex-wrap" style="justify-content: space-between">
-                    <template v-for="columnValue in item.ColumnValues" :key="columnValue.ColumnId">
-                        <div>Column Values for-loop</div>
+                    <template v-for="columnValue in item.columnValues" :key="columnValue.ColumnId">
+                        <FileColumnValue v-if="columnValue.type == 'file'"></FileColumnValue>
+                        <StatusColumnValue v-else-if="columnValue.type == 'status'"></StatusColumnValue>
+                        <BasicColumnValue v-else></BasicColumnValue>
                     </template>
                 </div>
             </div>
             <div class="mb-3">
-                <TextBox id="tbNewUpdate" textMode="multiline" class="mb-2" placeholder="Write a new update..."></TextBox>
-                <RockButton id="bbtnNewUpdateOpen" :onClick="bbtnNewUpdateOpen_Click" class="btn btn-primary w-100">New Update</RockButton>
+                <!-- <TextBox id="tbNewUpdate" textMode="multiline" class="mb-2" placeholder="Write a new update..."></TextBox> -->
+                <RockButton id="bbtnNewUpdateOpen" class="btn btn-primary w-100">New Update</RockButton>
                 <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-direction: row-reverse;">
                     <div>
-                        <RockButton id="bbtnNewUpdateSave" :onClick="bbtnNewUpdateSave_Click" class="btn btn-primary">Save</RockButton>
-                        <RockButton id="bbtnNewUpdateCancel" :onClick="bbtnNewUpdateCancel_Click" class="btn btn-secondary">Cancel</RockButton>
+                        <RockButton id="bbtnNewUpdateSave" class="btn btn-primary">Save</RockButton>
+                        <RockButton id="bbtnNewUpdateCancel" class="btn btn-secondary">Cancel</RockButton>
                     </div>
                     <div>
                         <div>File Uploader Here</div>
@@ -36,47 +38,8 @@
                 </div>
             </div>
 
-            <template v-for="update in item.Updates" :key="update.Id">
-                <div id="mondayUpdate" class="bcc-monday-well-group">
-                    <div class="well">
-                        <p v-text="update.TextBody"></p>
-                        <div>
-                            <span class="font-weight-bold" v-text="update.CreatorName"></span>
-                            <span v-text="update.CreatedAt"></span>
-                        </div>
-                        <template v-for="file in update.files">
-                            <a :href="file.PublicUrl" v-text="file.Name"></a>
-                            <br>
-                        </template>
-                    </div>
-                    <template v-for="reply in update.Replies" :key="reply.Id">
-                        <div class="row d-flex flex-nowrap align-items-center">
-                            <i class="fa fa-reply fa-rotate-180 fa-2x m-2 d-inline-block"></i>
-                            <div class="well d-inline-block">
-                                <p v-text="reply.TextBody"></p>
-                                <div>
-                                    <span style="word-break: break-all" class="font-weight-bold" v-text="reply.CreatorName"></span>
-                                    <span v-text="reply.CreatedAt"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-                    <div class="row">
-                        <div class="col-md-12 d-flex mb-2 p-0 mt-2">
-                            <div class="d-flex align-items-center">
-                                <i class="fa fa-reply fa-rotate-180 fa-2x m-2"></i>
-                            </div>
-                            <div class="d-flex flex-column justify-content-center w-100">
-                                <TextBox id="tbNewReply" v-model="text" textMode="multiline" :rows="5" class="mb-2" placeholder="Write a new reply..."></TextBox>
-                                <div>
-                                    <RockButton id="bbtnNewReplyOpen" class="btn btn-secondary">New Reply</RockButton>
-                                    <RockButton id="bbtnNewReplySave" class="btn btn-primary">Save</RockButton>
-                                    <RockButton id="bbtnNewReplyCancel" class="btn btn-secondary">Cancel</RockButton>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <template v-for="update in item.updates" :key="update.Id">
+               <MondayUpdate :update="update"/>
             </template>
         </div>
     </Panel>
@@ -90,11 +53,11 @@ import { BtnType } from "@Obsidian/Enums/Controls/btnType";
 import { BtnSize } from "@Obsidian/Enums/Controls/btnSize";
 import Panel from "@Obsidian/Controls/panel";
 import TextBox from "@Obsidian/Controls/textBox";
-import Dialog from "@Obsidian/Controls/dialog";
 import type { MondayItemDetailBag } from "./ViewModels/MondayItemDetailBag";
+import MondayUpdate from "./mondayItemDetail/mondayUpdate.partial.obs";
 
 const notFound = ref(false);
-const config = useConfigurationValues<MondayItemDetailBag | null>();
+const config = useConfigurationValues<MondayItemDetailBag>();
 const invokeBlockAction = useInvokeBlockAction();
 const reloadBlock = useReloadBlock();
 
@@ -104,6 +67,7 @@ const isRunning = ref<boolean>(false);
 const runResult = ref<string>("");
 const errorMessage = ref<string>("");
 const lavaTemplate = ref<string>("");
+const item = config;
 
 //#endregion
 
@@ -130,6 +94,7 @@ async function saveReply(): Promise<boolean> {
 /**
  * Event handler for the form being submitted.
  */
+/*
 async function runLava(): Promise<void> {
     try {
         isRunning.value = true;
@@ -153,6 +118,7 @@ async function runLava(): Promise<void> {
         isRunning.value = false;
     }
 }
+*/
 
 //#endregion
 

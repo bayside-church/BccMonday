@@ -44,14 +44,10 @@
     <Compile Include="Models\BccMondayBoardDisplayColumnService.cs" />
     <Compile Include="Models\BccMondayBoardService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Utilities\Api\Board.cs" />
-    <Compile Include="Utilities\Api\GraphQLResponse.cs" />
     <Compile Include="Utilities\Api\Interfaces\IColumnValue.cs" />
     <Compile Include="Utilities\Api\Interfaces\IItemsPage.cs" />
     <Compile Include="Utilities\Api\Interfaces\IMondayUser.cs" />
     <Compile Include="Utilities\Api\Interfaces\IWorkspace.cs" />
-    <Compile Include="Utilities\Api\ItemsPage.cs" />
-    <Compile Include="Utilities\Api\MondayUser.cs" />
     <Compile Include="Utilities\Api\Responses\AddFileToUpdateResponse.cs" />
     <Compile Include="Utilities\Api\Responses\ChangeSimpleColumnValueResponse.cs" />
     <Compile Include="Utilities\Api\Responses\CreateUpdateResponse.cs" />
@@ -60,29 +56,38 @@
     <Compile Include="Utilities\Api\Responses\GetBoardWorkspaceResponse.cs" />
     <Compile Include="Utilities\Api\Responses\GetItemsResponse.cs" />
     <Compile Include="Utilities\Api\Responses\GetNextItemsPageResponse.cs" />
-    <Compile Include="Utilities\Api\StatusColumnValue.cs" />
-    <Compile Include="Utilities\Api\Column.cs" />
-    <Compile Include="Utilities\Api\ColumnValue.cs" />
     <Compile Include="Utilities\Api\Config\IMondayApiKey.cs" />
     <Compile Include="Utilities\Api\Config\MondayApiKey.cs" />
-    <Compile Include="Utilities\Api\Asset.cs" />
-    <Compile Include="Utilities\Api\FileColumnValue.cs" />
     <Compile Include="Utilities\Api\Interfaces\AbstractColumnValue.cs" />
     <Compile Include="Utilities\Api\Interfaces\ColumnValueConverter.cs" />
     <Compile Include="Utilities\Api\Interfaces\IBoard.cs" />
     <Compile Include="Utilities\Api\Interfaces\IColumn.cs" />
     <Compile Include="Utilities\Api\Interfaces\IAsset.cs" />
     <Compile Include="Utilities\Api\Interfaces\IItem.cs" />
-    <Compile Include="Utilities\Api\Item.cs" />
-    <Compile Include="Utilities\Api\BoardRelationColumnValue.cs" />
     <Compile Include="Utilities\Api\Interfaces\IMondayApi.cs" />
     <Compile Include="Utilities\Api\Interfaces\IUpdate.cs" />
     <Compile Include="Utilities\Api\MondayApi.cs" />
     <Compile Include="Utilities\Api\Interfaces\ConcreteConverter.cs" />
     <Compile Include="Utilities\Api\MondayStatuses.cs" />
-    <Compile Include="Utilities\Api\Update.cs" />
-    <Compile Include="Utilities\Api\Workspace.cs" />
+    <Compile Include="Utilities\Api\Schema\Asset.cs" />
+    <Compile Include="Utilities\Api\Schema\Board.cs" />
+    <Compile Include="Utilities\Api\Schema\BoardRelationColumnValue.cs" />
+    <Compile Include="Utilities\Api\Schema\Column.cs" />
+    <Compile Include="Utilities\Api\Schema\ColumnValue.cs" />
+    <Compile Include="Utilities\Api\Schema\FileColumnValue.cs" />
+    <Compile Include="Utilities\Api\Schema\Item.cs" />
+    <Compile Include="Utilities\Api\Schema\ItemsPage.cs" />
+    <Compile Include="Utilities\Api\Schema\MondayUser.cs" />
+    <Compile Include="Utilities\Api\Schema\StatusColumnValue.cs" />
+    <Compile Include="Utilities\Api\Schema\Update.cs" />
+    <Compile Include="Utilities\Api\Schema\Workspace.cs" />
     <Compile Include="Utilities\Guids.cs" />
+    <Compile Include="ViewModels\MondayItemDetail\MondayItemDetailBag.cs"/>
+    <Compile Include="ViewModels\MondayItemDetail\MondayItemDetailOptionsBag.cs"/>
+    <Compile Include="Blocks\MondayItemDetail.cs"/>
+    <Compile Include="Blocks\MondayItemList.cs"/>
+    <Compile Include="Blocks\MondayBoardDetail.cs"/>
+    <Compile Include="Blocks\MondayBoardList.cs"/>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -133,6 +138,7 @@
       <HintPath>..\..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7.2\System.Xml.Linq.dll</HintPath>
     </Reference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
