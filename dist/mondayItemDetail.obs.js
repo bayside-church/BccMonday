@@ -1,43 +1,117 @@
-System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButton', '@Obsidian/Controls/panel'], (function (exports) {
+System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButton', '@Obsidian/Controls/textBox', '@Obsidian/Controls/fileUploader'], (function (exports) {
   'use strict';
-  var createElementVNode, defineComponent, openBlock, createElementBlock, Fragment, toDisplayString, ref, inject, renderList, createBlock, unref, createCommentVNode, createTextVNode, resolveComponent, withCtx, createVNode, useConfigurationValues, useInvokeBlockAction, useReloadBlock, onConfigurationValuesChanged, RockButton, Panel;
+  var createElementVNode, defineComponent, openBlock, createElementBlock, toDisplayString, Fragment, createTextVNode, inject, ref, renderList, createBlock, unref, createCommentVNode, withCtx, normalizeStyle, provide, createVNode, useInvokeBlockAction, useConfigurationValues, useReloadBlock, onConfigurationValuesChanged, RockButton, TextBox, FileUploader;
   return {
     setters: [function (module) {
       createElementVNode = module.createElementVNode;
       defineComponent = module.defineComponent;
       openBlock = module.openBlock;
       createElementBlock = module.createElementBlock;
-      Fragment = module.Fragment;
       toDisplayString = module.toDisplayString;
-      ref = module.ref;
+      Fragment = module.Fragment;
+      createTextVNode = module.createTextVNode;
       inject = module.inject;
+      ref = module.ref;
       renderList = module.renderList;
       createBlock = module.createBlock;
       unref = module.unref;
       createCommentVNode = module.createCommentVNode;
-      createTextVNode = module.createTextVNode;
-      resolveComponent = module.resolveComponent;
       withCtx = module.withCtx;
+      normalizeStyle = module.normalizeStyle;
+      provide = module.provide;
       createVNode = module.createVNode;
     }, function (module) {
-      useConfigurationValues = module.useConfigurationValues;
       useInvokeBlockAction = module.useInvokeBlockAction;
+      useConfigurationValues = module.useConfigurationValues;
       useReloadBlock = module.useReloadBlock;
       onConfigurationValuesChanged = module.onConfigurationValuesChanged;
     }, function (module) {
       RockButton = module["default"];
     }, function (module) {
-      Panel = module["default"];
+      TextBox = module["default"];
+    }, function (module) {
+      FileUploader = module["default"];
     }],
     execute: (function () {
 
-      var _hoisted_1$2 = ["href", "textContent"];
-      var _hoisted_2$2 = createElementVNode("br", null, null, -1);
-      var script$2 = defineComponent({
+      function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
+        try {
+          var info = gen[key](arg);
+          var value = info.value;
+        } catch (error) {
+          reject(error);
+          return;
+        }
+        if (info.done) {
+          resolve(value);
+        } else {
+          Promise.resolve(value).then(_next, _throw);
+        }
+      }
+      function _asyncToGenerator(fn) {
+        return function () {
+          var self = this,
+            args = arguments;
+          return new Promise(function (resolve, reject) {
+            var gen = fn.apply(self, args);
+            function _next(value) {
+              asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);
+            }
+            function _throw(err) {
+              asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);
+            }
+            _next(undefined);
+          });
+        };
+      }
+
+      var _hoisted_1$7 = {
+        class: "row d-flex flex-nowrap align-items-center"
+      };
+      var _hoisted_2$7 = createElementVNode("i", {
+        class: "fa fa-reply fa-rotate-180 fa-2x m-2 d-inline-block"
+      }, null, -1);
+      var _hoisted_3$5 = {
+        class: "well d-inline-block"
+      };
+      var _hoisted_4$5 = ["textContent"];
+      var _hoisted_5$3 = ["textContent"];
+      var _hoisted_6$3 = ["textContent"];
+      var script$7 = defineComponent({
+        name: 'mondayReply.partial',
+        props: {
+          reply: {
+            type: Object,
+            required: true
+          }
+        },
+        setup(__props) {
+          return (_ctx, _cache) => {
+            return openBlock(), createElementBlock("div", _hoisted_1$7, [_hoisted_2$7, createElementVNode("div", _hoisted_3$5, [createElementVNode("p", {
+              textContent: toDisplayString(__props.reply.textBody)
+            }, null, 8, _hoisted_4$5), createElementVNode("div", null, [createElementVNode("span", {
+              style: {
+                "word-break": "break-all"
+              },
+              class: "font-weight-bold",
+              textContent: toDisplayString(__props.reply.creatorName)
+            }, null, 8, _hoisted_5$3), createElementVNode("span", {
+              textContent: toDisplayString(' on ' + __props.reply.createdAt)
+            }, null, 8, _hoisted_6$3)])])]);
+          };
+        }
+      });
+
+      script$7.__file = "src/mondayItemDetail/mondayReply.partial.obs";
+
+      var _hoisted_1$6 = ["href", "textContent"];
+      var _hoisted_2$6 = createElementVNode("br", null, null, -1);
+      var script$6 = defineComponent({
         name: 'mondayFile.partial',
         props: {
           file: {
-            type: Object
+            type: Object,
+            required: true
           }
         },
         setup(__props) {
@@ -45,24 +119,41 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
             return openBlock(), createElementBlock(Fragment, null, [createElementVNode("a", {
               href: __props.file.publicUrl,
               textContent: toDisplayString(__props.file.name)
-            }, null, 8, _hoisted_1$2), _hoisted_2$2], 64);
+            }, null, 8, _hoisted_1$6), _hoisted_2$6], 64);
           };
         }
       });
 
-      script$2.__file = "src/mondayItemDetail/mondayFile.partial.obs";
+      script$6.__file = "src/mondayItemDetail/mondayFile.partial.obs";
 
-      var _hoisted_1$1 = {
+      var _hoisted_1$5 = {
         id: "mondayUpdate",
         class: "bcc-monday-well-group"
       };
-      var _hoisted_2$1 = {
+      var _hoisted_2$5 = {
         class: "well"
       };
-      var _hoisted_3$1 = ["textContent"];
-      var _hoisted_4$1 = ["textContent"];
-      var _hoisted_5$1 = ["textContent"];
-      var script$1 = defineComponent({
+      var _hoisted_3$4 = ["textContent"];
+      var _hoisted_4$4 = ["textContent"];
+      var _hoisted_5$2 = ["textContent"];
+      var _hoisted_6$2 = {
+        class: "row"
+      };
+      var _hoisted_7$2 = {
+        class: "col-md-12 d-flex mb-2 p-0 mt-2"
+      };
+      var _hoisted_8$1 = createElementVNode("div", {
+        class: "d-flex align-items-center"
+      }, [createElementVNode("i", {
+        class: "fa fa-reply fa-rotate-180 fa-2x m-2"
+      })], -1);
+      var _hoisted_9$1 = {
+        class: "d-flex flex-column justify-content-center w-100"
+      };
+      var _hoisted_10$1 = createTextVNode("New Reply");
+      var _hoisted_11$1 = createTextVNode("Save");
+      var _hoisted_12$1 = createTextVNode("Cancel");
+      var script$5 = defineComponent({
         name: 'mondayUpdate.partial',
         props: {
           update: {
@@ -71,68 +162,291 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
           }
         },
         setup(__props) {
+          var props = __props;
+          var invokeBlockAction = useInvokeBlockAction();
+          var getItemDetailArgs = inject("getItemDetailArgs");
+          inject("itemConfig");
           ref(false);
-          var item = inject("mondayItemBag");
-          item.updates;
+          var newReply = ref("");
+          var newReplyOpen = ref(false);
+          function toggleVisibility() {
+            newReplyOpen.value = !newReplyOpen.value;
+            newReply.value = "";
+          }
+          function saveReply() {
+            return _saveReply.apply(this, arguments);
+          }
+          function _saveReply() {
+            _saveReply = _asyncToGenerator(function* () {
+              var replyText = newReply.value;
+              var response = yield invokeBlockAction("SaveReply", {
+                args: getItemDetailArgs(),
+                text: replyText,
+                updateId: props.update.id
+              });
+              if (response.data) {
+                var _props$update$replies;
+                var reply = response.data;
+                (_props$update$replies = props.update.replies) === null || _props$update$replies === void 0 || _props$update$replies.push(reply);
+              }
+              toggleVisibility();
+            });
+            return _saveReply.apply(this, arguments);
+          }
           return (_ctx, _cache) => {
-            return openBlock(), createElementBlock("div", _hoisted_1$1, [createElementVNode("div", _hoisted_2$1, [createElementVNode("p", {
+            return openBlock(), createElementBlock("div", _hoisted_1$5, [createElementVNode("div", _hoisted_2$5, [createElementVNode("p", {
               textContent: toDisplayString(__props.update.textBody)
-            }, null, 8, _hoisted_3$1), createElementVNode("div", null, [createElementVNode("span", {
+            }, null, 8, _hoisted_3$4), createElementVNode("div", null, [createElementVNode("span", {
               class: "font-weight-bold",
               textContent: toDisplayString(__props.update.creatorName)
-            }, null, 8, _hoisted_4$1), createElementVNode("span", {
-              textContent: toDisplayString(__props.update.createdAt)
-            }, null, 8, _hoisted_5$1)]), (openBlock(true), createElementBlock(Fragment, null, renderList(__props.update.files, file => {
-              return openBlock(), createBlock(unref(script$2), {
+            }, null, 8, _hoisted_4$4), createElementVNode("span", {
+              textContent: toDisplayString(' on ' + __props.update.createdAt)
+            }, null, 8, _hoisted_5$2)]), (openBlock(true), createElementBlock(Fragment, null, renderList(__props.update.files, file => {
+              return openBlock(), createBlock(unref(script$6), {
                 file: file
               }, null, 8, ["file"]);
             }), 256))]), (openBlock(true), createElementBlock(Fragment, null, renderList(__props.update.replies, reply => {
-              return openBlock(), createElementBlock(Fragment, {
-                key: reply.Id
-              }, [createCommentVNode(" <MondayReply :reply-=\"reply\"></MondayReply> ")], 64);
-            }), 128))]);
+              return openBlock(), createBlock(unref(script$7), {
+                key: reply.Id,
+                reply: reply
+              }, null, 8, ["reply"]);
+            }), 128)), createElementVNode("div", _hoisted_6$2, [createElementVNode("div", _hoisted_7$2, [_hoisted_8$1, createElementVNode("div", _hoisted_9$1, [newReplyOpen.value ? (openBlock(), createBlock(unref(TextBox), {
+              key: 0,
+              id: "tbNewReply",
+              modelValue: newReply.value,
+              "onUpdate:modelValue": _cache[0] || (_cache[0] = $event => newReply.value = $event),
+              textMode: "multiline",
+              class: "mb-2",
+              placeholder: "Write a new reply..."
+            }, null, 8, ["modelValue"])) : createCommentVNode("v-if", true), createElementVNode("div", null, [!newReplyOpen.value ? (openBlock(), createBlock(unref(RockButton), {
+              key: 0,
+              id: "bbtnNewReplyOpen",
+              onclick: toggleVisibility,
+              class: "btn btn-secondary"
+            }, {
+              default: withCtx(() => [_hoisted_10$1]),
+              _: 1
+            })) : createCommentVNode("v-if", true), newReplyOpen.value ? (openBlock(), createBlock(unref(RockButton), {
+              key: 1,
+              id: "bbtnNewReplySave",
+              onClick: saveReply,
+              class: "btn btn-primary"
+            }, {
+              default: withCtx(() => [_hoisted_11$1]),
+              _: 1
+            })) : createCommentVNode("v-if", true), newReplyOpen.value ? (openBlock(), createBlock(unref(RockButton), {
+              key: 2,
+              id: "bbtnNewReplyCancel",
+              onClick: toggleVisibility,
+              class: "btn btn-secondary"
+            }, {
+              default: withCtx(() => [_hoisted_12$1]),
+              _: 1
+            })) : createCommentVNode("v-if", true)])])])])]);
           };
         }
       });
 
-      script$1.__file = "src/mondayItemDetail/mondayUpdate.partial.obs";
+      script$5.__file = "src/mondayItemDetail/mondayUpdate.partial.obs";
+
+      var _hoisted_1$4 = {
+        class: "mr-3"
+      };
+      var _hoisted_2$4 = {
+        class: "font-weight-bold"
+      };
+      var _hoisted_3$3 = {
+        style: {
+          "min-width": "200px"
+        }
+      };
+      var _hoisted_4$3 = ["href"];
+      var script$4 = defineComponent({
+        name: 'fileColumnValue.partial',
+        props: {
+          columnValue: {
+            type: Object,
+            required: true
+          }
+        },
+        setup(__props) {
+          return (_ctx, _cache) => {
+            return openBlock(), createElementBlock("div", _hoisted_1$4, [createElementVNode("p", _hoisted_2$4, toDisplayString(__props.columnValue.column.title), 1), createElementVNode("div", _hoisted_3$3, [(openBlock(true), createElementBlock(Fragment, null, renderList(__props.columnValue.files, file => {
+              return openBlock(), createElementBlock("div", {
+                key: file.assetId
+              }, [createElementVNode("a", {
+                href: file.asset.publicUrl
+              }, toDisplayString(file.asset.name), 9, _hoisted_4$3)]);
+            }), 128))])]);
+          };
+        }
+      });
+
+      script$4.__file = "src/mondayItemDetail/fileColumnValue.partial.obs";
+
+      var _hoisted_1$3 = {
+        class: "mr-3"
+      };
+      var _hoisted_2$3 = {
+        class: "font-weight-bold"
+      };
+      var _hoisted_3$2 = {
+        class: "bcc-monday-column-empty",
+        style: {
+          'min-width': '200px'
+        }
+      };
+      var _hoisted_4$2 = {
+        class: "copy-link-area btn-group"
+      };
+      var _hoisted_5$1 = {
+        class: "btn"
+      };
+      var _hoisted_6$1 = ["id"];
+      var _hoisted_7$1 = ["id"];
+      var script$3 = defineComponent({
+        name: 'basicColumnValue.partial',
+        props: {
+          columnValue: {
+            type: Object,
+            required: true
+          }
+        },
+        setup(__props) {
+          return (_ctx, _cache) => {
+            var _props$columnValue$t;
+            return openBlock(), createElementBlock("div", null, [createElementVNode("div", _hoisted_1$3, [createElementVNode("p", _hoisted_2$3, toDisplayString(__props.columnValue.column.title), 1), createElementVNode("div", _hoisted_3$2, [createElementVNode("div", _hoisted_4$2, [createElementVNode("div", _hoisted_5$1, [createElementVNode("span", null, toDisplayString((_props$columnValue$t = __props.columnValue.text) !== null && _props$columnValue$t !== void 0 ? _props$columnValue$t : "Unknown"), 1)]), createElementVNode("button", {
+              id: __props.columnValue.column.title,
+              type: "button",
+              class: "btn btn-primary btn-copy js-tooltip js-copy",
+              "data-toggle": "tooltip",
+              "data-placement": "bottom",
+              title: "Copy"
+            }, [createElementVNode("i", {
+              id: __props.columnValue.column.title + ' icon',
+              class: "far fa-clone"
+            }, null, 8, _hoisted_7$1)], 8, _hoisted_6$1)])])])]);
+          };
+        }
+      });
+
+      script$3.__file = "src/mondayItemDetail/basicColumnValue.partial.obs";
+
+      var _hoisted_1$2 = {
+        class: "mr-3"
+      };
+      var _hoisted_2$2 = {
+        class: "font-weight-bold"
+      };
+      var script$2 = defineComponent({
+        name: 'statusColumnValue.partial',
+        props: {
+          columnValue: {
+            type: Object,
+            required: true
+          }
+        },
+        setup(__props) {
+          return (_ctx, _cache) => {
+            var _props$columnValue$l;
+            return openBlock(), createElementBlock("div", null, [createElementVNode("div", _hoisted_1$2, [createElementVNode("p", _hoisted_2$2, toDisplayString(__props.columnValue.column.title), 1), createElementVNode("div", {
+              class: "text-center",
+              style: normalizeStyle({
+                'background-color': (_props$columnValue$l = __props.columnValue.labelStyle) === null || _props$columnValue$l === void 0 ? void 0 : _props$columnValue$l.color,
+                'text-overflow': 'ellipsis',
+                'white-space': 'nowrap',
+                'overflow': 'hidden',
+                'padding': '11px 22px',
+                'min-width': '200px',
+                'max-width': '250px',
+                'color': '#ffffff',
+                'border-radius': '10px'
+              })
+            }, [createElementVNode("span", null, toDisplayString(__props.columnValue.text || 'Unknown'), 1)], 4)])]);
+          };
+        }
+      });
+
+      script$2.__file = "src/mondayItemDetail/statusColumnValue.partial.obs";
+
+      var _hoisted_1$1 = {
+        class: "mr-3"
+      };
+      var _hoisted_2$1 = {
+        class: "font-weight-bold"
+      };
+      var _hoisted_3$1 = {
+        style: {
+          "min-width": "200px"
+        }
+      };
+      var _hoisted_4$1 = ["href"];
+      var script$1 = defineComponent({
+        name: 'boardRelationColumnValue.partial',
+        props: {
+          columnValue: {
+            type: Object,
+            required: true
+          }
+        },
+        setup(__props) {
+          function generateUrl(itemId) {
+            var currentUrl = window.location.href;
+            var urlWithoutQuery = currentUrl.split('?')[0];
+            var url = "".concat(urlWithoutQuery, "?MondayItemId=").concat(itemId);
+            return url;
+          }
+          return (_ctx, _cache) => {
+            return openBlock(), createElementBlock("div", _hoisted_1$1, [createElementVNode("p", _hoisted_2$1, toDisplayString(__props.columnValue.column.title), 1), createElementVNode("div", _hoisted_3$1, [(openBlock(true), createElementBlock(Fragment, null, renderList(__props.columnValue.linkedItemIds, linkedItemId => {
+              return openBlock(), createElementBlock("div", {
+                key: linkedItemId
+              }, [createElementVNode("a", {
+                href: generateUrl(linkedItemId)
+              }, "Item", 8, _hoisted_4$1)]);
+            }), 128))])]);
+          };
+        }
+      });
+
+      script$1.__file = "src/mondayItemDetail/boardRelationColumnValue.partial.obs";
 
       var _hoisted_1 = {
-        class: "panel-heading bcc-monday-panel-heading row"
+        id: "pnlItem",
+        class: "panel panel-block"
       };
       var _hoisted_2 = {
-        class: "col-xs-6 p-0"
+        class: "panel-heading bcc-monday-panel-heading row"
       };
       var _hoisted_3 = {
+        class: "col-xs-6 p-0"
+      };
+      var _hoisted_4 = {
         class: "panel-title d-flex flex-column justify-content-center"
       };
-      var _hoisted_4 = ["textContent"];
       var _hoisted_5 = ["textContent"];
-      var _hoisted_6 = {
+      var _hoisted_6 = ["textContent"];
+      var _hoisted_7 = {
         class: "col-xs-6 text-right p-0"
       };
-      var _hoisted_7 = createTextVNode("Approve Request");
-      var _hoisted_8 = createTextVNode("Close Request");
-      var _hoisted_9 = {
+      var _hoisted_8 = {
         class: "panel-body",
         style: {
           "width": "100%"
         }
       };
-      var _hoisted_10 = {
+      var _hoisted_9 = {
         class: "bcc-monday-column-group"
       };
-      var _hoisted_11 = {
+      var _hoisted_10 = {
         class: "d-flex mb-3 flex-wrap",
         style: {
           "justify-content": "space-between"
         }
       };
-      var _hoisted_12 = {
+      var _hoisted_11 = {
         class: "mb-3"
       };
-      var _hoisted_13 = createTextVNode("New Update");
-      var _hoisted_14 = {
+      var _hoisted_12 = {
         style: {
           "display": "flex",
           "align-items": "flex-start",
@@ -140,86 +454,165 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
           "flex-direction": "row-reverse"
         }
       };
-      var _hoisted_15 = createTextVNode("Save");
-      var _hoisted_16 = createTextVNode("Cancel");
-      var _hoisted_17 = createElementVNode("div", null, [createElementVNode("div", null, "File Uploader Here")], -1);
       var script = exports('default', defineComponent({
         name: 'mondayItemDetail',
         setup(__props) {
           ref(false);
           var config = useConfigurationValues();
-          useInvokeBlockAction();
+          var invokeBlockAction = useInvokeBlockAction();
           var reloadBlock = useReloadBlock();
+          console.log("Config from block:\n ", config);
           ref(false);
           ref("");
           ref("");
-          ref("");
-          var item = config;
+          var item = config.item;
+          var newUpdate = ref("");
+          var newUpdateOpen = ref(false);
+          var fileUploadValue = ref();
+          var approveVisible = ref(config.showApprove);
+          var closeVisible = ref(config.showClose);
+          var getItemDetailArgs = () => {
+            return {
+              mondayItemId: item.id,
+              mondayBoardId: item.board.id
+            };
+          };
+          provide("getItemDetailArgs", getItemDetailArgs);
+          provide("itemConfig", item);
+          var toggleVisibility = () => {
+            newUpdateOpen.value = !newUpdateOpen.value;
+            newUpdate.value = "";
+            fileUploadValue.value = undefined;
+          };
+          function saveUpdate() {
+            return _saveUpdate.apply(this, arguments);
+          }
+          function _saveUpdate() {
+            _saveUpdate = _asyncToGenerator(function* () {
+              var updateText = newUpdate.value;
+              console.log(updateText);
+              var blockActionArgs = {
+                args: getItemDetailArgs(),
+                text: updateText
+              };
+              if (fileUploadValue && fileUploadValue.value) {
+                blockActionArgs.fileUploaded = fileUploadValue.value.value;
+              }
+              var response = yield invokeBlockAction("SaveUpdate", blockActionArgs);
+              if (response.data) {
+                var update = response.data;
+                item.updates.unshift(update);
+              }
+              newUpdate.value = "";
+              newUpdateOpen.value = !newUpdateOpen.value;
+            });
+            return _saveUpdate.apply(this, arguments);
+          }
+          function changeColumnValue(_x) {
+            return _changeColumnValue.apply(this, arguments);
+          }
+          function _changeColumnValue() {
+            _changeColumnValue = _asyncToGenerator(function* (statusChange) {
+              var response = yield invokeBlockAction("ChangeColumnValue", {
+                args: getItemDetailArgs(),
+                statusChange: statusChange
+              });
+              if (response.data) {
+                var _response$data = response.data,
+                  color = _response$data.color,
+                  statusText = _response$data.statusText;
+                approveVisible.value = showStatusButton(statusText, config.showApprove);
+                closeVisible.value = statusChange !== 'Close';
+                item.columnValues[config.statusIndex].text = statusText;
+                item.columnValues[config.statusIndex].labelStyle = {
+                  color: color,
+                  border: ""
+                };
+              }
+            });
+            return _changeColumnValue.apply(this, arguments);
+          }
+          function showStatusButton(status, showApprove) {
+            var currentStatus = item.columnValues[config.statusIndex].text;
+            var foo = currentStatus !== status && (showApprove === undefined || showApprove);
+            console.log(foo, currentStatus, status);
+            return foo;
+          }
           onConfigurationValuesChanged(reloadBlock);
           return (_ctx, _cache) => {
-            var _component_FileColumnValue = resolveComponent("FileColumnValue");
-            var _component_StatusColumnValue = resolveComponent("StatusColumnValue");
-            var _component_BasicColumnValue = resolveComponent("BasicColumnValue");
-            return openBlock(), createBlock(unref(Panel), {
-              id: "pnlItem",
-              class: "panel panel-block"
-            }, {
-              default: withCtx(() => [createElementVNode("div", _hoisted_1, [createElementVNode("div", _hoisted_2, [createElementVNode("h1", _hoisted_3, [createElementVNode("div", {
-                textContent: toDisplayString(unref(item).name)
-              }, null, 8, _hoisted_4), createElementVNode("div", null, [createElementVNode("span", {
-                class: "text-muted",
-                style: {
-                  "font-size": "0.8rem"
-                },
-                textContent: toDisplayString(unref(item).createdAt)
-              }, null, 8, _hoisted_5)])])]), createElementVNode("div", _hoisted_6, [createVNode(unref(RockButton), {
-                id: "bbtnApprove",
-                class: "btn btn-secondary"
-              }, {
-                default: withCtx(() => [_hoisted_7]),
-                _: 1
-              }), createVNode(unref(RockButton), {
-                id: "bbtnClose",
-                class: "btn btn-secondary"
-              }, {
-                default: withCtx(() => [_hoisted_8]),
-                _: 1
-              })])]), createElementVNode("div", _hoisted_9, [createElementVNode("div", _hoisted_10, [createElementVNode("div", _hoisted_11, [(openBlock(true), createElementBlock(Fragment, null, renderList(unref(item).columnValues, columnValue => {
-                return openBlock(), createElementBlock(Fragment, {
-                  key: columnValue.ColumnId
-                }, [columnValue.type == 'file' ? (openBlock(), createBlock(_component_FileColumnValue, {
-                  key: 0
-                })) : columnValue.type == 'status' ? (openBlock(), createBlock(_component_StatusColumnValue, {
-                  key: 1
-                })) : (openBlock(), createBlock(_component_BasicColumnValue, {
-                  key: 2
-                }))], 64);
-              }), 128))])]), createElementVNode("div", _hoisted_12, [createCommentVNode(" <TextBox id=\"tbNewUpdate\" textMode=\"multiline\" class=\"mb-2\" placeholder=\"Write a new update...\"></TextBox> "), createVNode(unref(RockButton), {
-                id: "bbtnNewUpdateOpen",
-                class: "btn btn-primary w-100"
-              }, {
-                default: withCtx(() => [_hoisted_13]),
-                _: 1
-              }), createElementVNode("div", _hoisted_14, [createElementVNode("div", null, [createVNode(unref(RockButton), {
-                id: "bbtnNewUpdateSave",
-                class: "btn btn-primary"
-              }, {
-                default: withCtx(() => [_hoisted_15]),
-                _: 1
-              }), createVNode(unref(RockButton), {
-                id: "bbtnNewUpdateCancel",
-                class: "btn btn-secondary"
-              }, {
-                default: withCtx(() => [_hoisted_16]),
-                _: 1
-              })]), _hoisted_17])]), (openBlock(true), createElementBlock(Fragment, null, renderList(unref(item).updates, update => {
-                return openBlock(), createBlock(unref(script$1), {
-                  key: update.Id,
-                  update: update
-                }, null, 8, ["update"]);
-              }), 128))])]),
-              _: 1
-            });
+            return openBlock(), createElementBlock("div", _hoisted_1, [createElementVNode("div", _hoisted_2, [createElementVNode("div", _hoisted_3, [createElementVNode("h1", _hoisted_4, [createElementVNode("div", {
+              textContent: toDisplayString(unref(item).name)
+            }, null, 8, _hoisted_5), createElementVNode("div", null, [createElementVNode("span", {
+              class: "text-muted",
+              style: {
+                "font-size": "0.8rem"
+              },
+              textContent: toDisplayString(unref(item).createdAt)
+            }, null, 8, _hoisted_6)])])]), createElementVNode("div", _hoisted_7, [approveVisible.value ? (openBlock(), createBlock(unref(RockButton), {
+              key: 0,
+              id: "bbtnApprove",
+              class: "btn btn-secondary",
+              onClick: _cache[0] || (_cache[0] = $event => changeColumnValue('Approve')),
+              textContent: 'Approve Request'
+            })) : createCommentVNode("v-if", true), closeVisible.value ? (openBlock(), createBlock(unref(RockButton), {
+              key: 1,
+              id: "bbtnClose",
+              class: "btn btn-secondary",
+              onClick: _cache[1] || (_cache[1] = $event => changeColumnValue('Close')),
+              textContent: 'Close Request'
+            })) : createCommentVNode("v-if", true)])]), createElementVNode("div", _hoisted_8, [createElementVNode("div", _hoisted_9, [createElementVNode("div", _hoisted_10, [(openBlock(true), createElementBlock(Fragment, null, renderList(unref(item).columnValues, columnValue => {
+              return openBlock(), createElementBlock(Fragment, {
+                key: columnValue.ColumnId
+              }, [columnValue.type == 'file' ? (openBlock(), createBlock(unref(script$4), {
+                key: 0,
+                columnValue: columnValue
+              }, null, 8, ["columnValue"])) : columnValue.type == 'status' ? (openBlock(), createBlock(unref(script$2), {
+                key: 1,
+                columnValue: columnValue
+              }, null, 8, ["columnValue"])) : columnValue.type == 'board_relation' ? (openBlock(), createBlock(unref(script$1), {
+                key: 2,
+                columnValue: columnValue
+              }, null, 8, ["columnValue"])) : (openBlock(), createBlock(unref(script$3), {
+                key: 3,
+                columnValue: columnValue
+              }, null, 8, ["columnValue"]))], 64);
+            }), 128))])]), createElementVNode("div", _hoisted_11, [!newUpdateOpen.value ? (openBlock(), createBlock(unref(RockButton), {
+              key: 0,
+              id: "bbtnNewUpdateOpen",
+              onclick: toggleVisibility,
+              class: "btn btn-primary w-100",
+              textContent: 'New Update'
+            })) : createCommentVNode("v-if", true), newUpdateOpen.value ? (openBlock(), createElementBlock(Fragment, {
+              key: 1
+            }, [createVNode(unref(TextBox), {
+              id: "tbNewUpdate",
+              modelValue: newUpdate.value,
+              "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => newUpdate.value = $event),
+              textMode: "multiline",
+              class: "mb-2",
+              placeholder: "Write a new update..."
+            }, null, 8, ["modelValue"]), createElementVNode("div", _hoisted_12, [createElementVNode("div", null, [createVNode(unref(RockButton), {
+              id: "bbtnNewUpdateSave",
+              onClick: saveUpdate,
+              class: "btn btn-primary",
+              textContent: 'Save'
+            }), createVNode(unref(RockButton), {
+              id: "bbtnNewUpdateCancel",
+              onClick: toggleVisibility,
+              class: "btn btn-secondary",
+              textContent: 'Cancel'
+            })]), createElementVNode("div", null, [createVNode(unref(FileUploader), {
+              modelValue: fileUploadValue.value,
+              "onUpdate:modelValue": _cache[3] || (_cache[3] = $event => fileUploadValue.value = $event),
+              uploadAsTemporary: true,
+              uploadButtonText: "Upload",
+              showDeleteButton: true
+            }, null, 8, ["modelValue"])])])], 64)) : createCommentVNode("v-if", true)]), (openBlock(true), createElementBlock(Fragment, null, renderList(unref(item).updates, update => {
+              return openBlock(), createBlock(unref(script$5), {
+                key: update.Id,
+                update: update
+              }, null, 8, ["update"]);
+            }), 128))])]);
           };
         }
       }));

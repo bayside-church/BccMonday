@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using com.baysideonline.BccMonday.Utilities.Api.Schema;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Rock.UniversalSearch;
@@ -43,7 +44,9 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Interfaces
 
         public override void WriteJson(JsonWriter writer, AbstractColumnValue value, JsonSerializer serializer)
         {
-            serializer.Serialize(writer, value);
+//            var jsonObject = JObject.FromObject(value);
+//            jsonObject.WriteTo(writer);
+            serializer.Serialize(writer, value, value.GetType());
         }
     }
 }

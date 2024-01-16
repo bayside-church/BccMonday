@@ -20,9 +20,6 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Schema
             var stringWriter = new StringWriter();
             var writer = new HtmlTextWriter(stringWriter);
 
-            var api = new MondayApi();
-            var response = api.GetFilesByAssetIds(this.AssetIds);
-
             writer.AddAttribute(HtmlTextWriterAttribute.Class, "mr-3");
             writer.RenderBeginTag(HtmlTextWriterTag.Div);
             writer.AddAttribute(HtmlTextWriterAttribute.Class, "font-weight-bold");
@@ -32,17 +29,14 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Schema
             writer.AddStyleAttribute("min-width", "200px");
             writer.RenderBeginTag(HtmlTextWriterTag.Div);
 
-            if (response != null)
+            foreach(var file in this.Files)
             {
-                foreach (var file in response)
-                {
-                    writer.RenderBeginTag(HtmlTextWriterTag.Div);
-                    writer.AddAttribute(HtmlTextWriterAttribute.Href, file.PublicUrl);
-                    writer.RenderBeginTag(HtmlTextWriterTag.A);
-                    writer.Write(file.Name);
-                    writer.RenderEndTag();
-                    writer.RenderEndTag();
-                }
+                writer.RenderBeginTag(HtmlTextWriterTag.Div);
+                writer.AddAttribute(HtmlTextWriterAttribute.Href, file.Asset.PublicUrl);
+                writer.RenderBeginTag(HtmlTextWriterTag.A);
+                writer.Write(file.Name);
+                writer.RenderEndTag();
+                writer.RenderEndTag();
             }
             
             writer.RenderEndTag();
@@ -61,7 +55,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Schema
         /// The asset associated with the file.
         /// </summary>
         [JsonProperty("asset")]
-        public IAsset Asset { get; set; }
+        public Asset Asset { get; set; }
 
         /// <summary>
         /// The asset's id.

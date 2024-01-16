@@ -1,4 +1,5 @@
 ﻿using com.baysideonline.BccMonday.Utilities.Api.Interfaces;
+using com.baysideonline.BccMonday.Utilities.Api.Schema;
 using System;
 using System.Collections.Generic;
 
@@ -39,7 +40,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <summary>
         /// The update's assets/files.
         /// </summary>
-        List<IAsset> Assets { get; set; }
+        List<Asset> Assets { get; set; }
 
         /// <summary>
         /// The update's replies.

@@ -1,0 +1,22 @@
+<template>
+    <div class="mr-3">
+        <p class="font-weight-bold">{{ columnValue.column.title }}</p>
+        <div style="min-width: 200px">
+        <div v-for="file in columnValue.files" :key="file.assetId">
+            <a :href="file.asset.publicUrl">{{ file.asset.name }}</a>
+        </div>
+        </div>
+    </div>
+</template>
+
+<script setup lang="ts">
+import { ColumnValueBag, FileColumnValue } from "src/ViewModels/MondayItemDetailBag";
+import { ref, PropType } from "vue";
+
+const props = defineProps({
+    columnValue: {
+        type: Object as PropType<ColumnValueBag>,
+        required: true
+    }
+})
+</script>

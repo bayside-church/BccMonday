@@ -1,5 +1,6 @@
 ﻿using com.baysideonline.BccMonday.Utilities.Api.Config;
 using com.baysideonline.BccMonday.Utilities.Api.Responses;
+using com.baysideonline.BccMonday.Utilities.Api.Schema;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
@@ -87,7 +88,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
         #region mutations
 
-        public IUpdate AddUpdateToItem(long itemId, string body, long? parentUpdateId = null)
+        public Update AddUpdateToItem(long itemId, string body, long? parentUpdateId = null)
         {
             if (!Initialize().IsOk())
                 return null;
@@ -124,7 +125,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             {
                 { "itemId", itemId },
                 { "body", body },
-                { "parentId", parentUpdateId }
+                { "parentUpdateId", parentUpdateId }
             };
 
             var queryData = Query<CreateUpdateResponse>(query, variables);
@@ -132,10 +133,10 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             return update;
         }
 
-        public bool ChangeColumnValue(long boardId, long itemId, string columnId, string newValue)
+        public StatusColumnValue ChangeColumnValue(long boardId, long itemId, string columnId, string newValue)
         {
             if (!Initialize().IsOk())
-                return false;
+                return null;
 
             string query = @"
                 mutation ($boardId: ID!, $columnId: String!, $itemId: ID, $newValue: String){
@@ -146,6 +147,17 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                         value: $newValue)
                         {
                             id
+                            column_values(ids: [$columnId]) {
+                                id
+                                text
+                                type
+                                value
+                                ... on StatusValue {
+                                    label_style {
+                                        color
+                                    }
+                                }
+                            }
                         }
                     }";
 
@@ -159,11 +171,12 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
             var queryData = Query<ChangeSimpleColumnValueResponse>(query, variables);
             var item = queryData.Item;
+            var columnValue = item.ColumnValues[0];
 
-            return item != null;
+            return columnValue as StatusColumnValue;
         }
 
-        public IAsset AddFileToUpdate(long updateId, BinaryFile binaryFile)
+        public Asset AddFileToUpdate(long updateId, BinaryFile binaryFile)
         {
             if (!Initialize().IsOk())
             {
@@ -211,7 +224,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
         #region queries
 
-        public List<IAsset> GetFilesByAssetIds(List<long> ids)
+        public List<Asset> GetFilesByAssetIds(List<long> ids)
         {
             if (!Initialize().IsOk())
                 return null;
@@ -239,7 +252,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             return assets;
         }
 
-        public IBoard GetBoard(long id)
+        public Board GetBoard(long id)
         {
             if (!Initialize().IsOk())
                 return null;
@@ -299,7 +312,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             return workspace.Name ?? null;
         }
 
-        public List<IBoard> GetBoards()
+        public List<Board> GetBoards()
         {
             if (!Initialize().IsOk())
                 return null;
@@ -320,7 +333,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             return boards;
         }
 
-        public IItem GetItem(long id)
+        public Item GetItem(long id)
         {
             if (!Initialize().IsOk())
                 return null;
@@ -448,12 +461,12 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             return item;
         }
 
-        public List<IItem> GetItemsByBoard(long boardId, string emailMatchColumnId, string statusColumnId)
+        public List<Item> GetItemsByBoard(long boardId, string emailMatchColumnId, string statusColumnId)
         {
             if (!Initialize().IsOk())
                 return null;
 
-            List<IItem> allItems = new List<IItem>();
+            List<Item> allItems = new List<Item>();
 
             // Initial query
             var initialQuery = @"
@@ -505,7 +518,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             string cursor = itemsPage.Cursor;
 
             // Process initial items
-            var initialItems = itemsPage.Items;
+            var initialItems = itemsPage.Items.ConvertAll(i => (Item)i);
             if (initialItems != null)
             {
                 allItems.AddRange(initialItems);
@@ -559,7 +572,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 var nextItemsPage = nextItemsPageData.NextItemsPage;
                 cursor = nextItemsPage.Cursor;
 
-                var nextItems = nextItemsPage.Items;
+                var nextItems = nextItemsPage.Items.ConvertAll(i => (Item)i);
                 allItems.AddRange(nextItems);
             }
 

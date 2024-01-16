@@ -1,4 +1,5 @@
-﻿using Rock.Model;
+﻿using com.baysideonline.BccMonday.Utilities.Api.Schema;
+using Rock.Model;
 using System.Collections.Generic;
 
 namespace com.baysideonline.BccMonday.Utilities.Api
@@ -52,20 +53,20 @@ namespace com.baysideonline.BccMonday.Utilities.Api
     {
         MondayInitializeResponse Initialize();
 
-        IItem GetItem(long id);
+        Item GetItem(long id);
 
-        List<IItem> GetItemsByBoard(long boardId, string emailMatchColumnId, string statusColumnId);
+        List<Item> GetItemsByBoard(long boardId, string emailMatchColumnId, string statusColumnId);
 
-        IUpdate AddUpdateToItem(long itemId, string body, long? parentUpdateId = null);
+        Update AddUpdateToItem(long itemId, string body, long? parentUpdateId = null);
 
-        List<IAsset> GetFilesByAssetIds(List<long> ids);
+        List<Asset> GetFilesByAssetIds(List<long> ids);
 
-        bool ChangeColumnValue(long boardId, long itemId, string columnId, string newValue);
+        StatusColumnValue ChangeColumnValue(long boardId, long itemId, string columnId, string newValue);
 
-        IBoard GetBoard(long id);
+        Board GetBoard(long id);
 
-        List<IBoard> GetBoards();
+        List<Board> GetBoards();
 
-        IAsset AddFileToUpdate(long updateId, BinaryFile binaryFile);
+        Asset AddFileToUpdate(long updateId, BinaryFile binaryFile);
     }
 }

@@ -69,6 +69,7 @@
     <Compile Include="Utilities\Api\MondayApi.cs" />
     <Compile Include="Utilities\Api\Interfaces\ConcreteConverter.cs" />
     <Compile Include="Utilities\Api\MondayStatuses.cs" />
+    <Compile Include="Utilities\Api\Responses\GraphQLResponse.cs" />
     <Compile Include="Utilities\Api\Schema\Asset.cs" />
     <Compile Include="Utilities\Api\Schema\Board.cs" />
     <Compile Include="Utilities\Api\Schema\BoardRelationColumnValue.cs" />
@@ -82,12 +83,13 @@
     <Compile Include="Utilities\Api\Schema\Update.cs" />
     <Compile Include="Utilities\Api\Schema\Workspace.cs" />
     <Compile Include="Utilities\Guids.cs" />
-    <Compile Include="ViewModels\MondayItemDetail\MondayItemDetailBag.cs"/>
-    <Compile Include="ViewModels\MondayItemDetail\MondayItemDetailOptionsBag.cs"/>
-    <Compile Include="Blocks\MondayItemDetail.cs"/>
-    <Compile Include="Blocks\MondayItemList.cs"/>
-    <Compile Include="Blocks\MondayBoardDetail.cs"/>
-    <Compile Include="Blocks\MondayBoardList.cs"/>
+    <Compile Include="ViewModels\MondayItemDetail\MondayItemDetailArgs.cs" />
+    <Compile Include="ViewModels\MondayItemDetail\MondayItemDetailBag.cs" />
+    <Compile Include="ViewModels\MondayItemDetail\MondayItemDetailOptionsBag.cs" />
+    <Compile Include="Blocks\MondayItemDetail.cs" />
+    <Compile Include="Blocks\MondayItemList.cs" />
+    <Compile Include="Blocks\MondayBoardDetail.cs" />
+    <Compile Include="Blocks\MondayBoardList.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -101,9 +103,21 @@
       <Project>{00edcb8d-ef33-459c-ad62-02876bd24dff}</Project>
       <Name>DotLiquid</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Rock.Blocks\Rock.Blocks.csproj">
+      <Project>{e8c5f154-201f-4c67-bcdc-34787deffeae}</Project>
+      <Name>Rock.Blocks</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Rock.Common\Rock.Common.csproj">
+      <Project>{13568622-324E-4493-B605-C9896E725D30}</Project>
+      <Name>Rock.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Rock.Lava.Shared\Rock.Lava.Shared.csproj">
       <Project>{8820cd93-70ee-496d-b17b-0c4c68dd4957}</Project>
       <Name>Rock.Lava.Shared</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Rock.ViewModels\Rock.ViewModels.csproj">
+      <Project>{05baaf85-9c53-4ccd-a535-036427b0df72}</Project>
+      <Name>Rock.ViewModels</Name>
     </ProjectReference>
     <ProjectReference Include="..\Rock\Rock.csproj">
       <Project>{185a31d7-3037-4dae-8797-0459849a84bd}</Project>

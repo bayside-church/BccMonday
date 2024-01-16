@@ -54,6 +54,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Schema
         /// <inheritdoc/>
         /// </summary>
         [JsonProperty("creator")]
+        [JsonConverter(typeof(ConcreteConverter<IMondayUser, MondayUser>))]
         public IMondayUser Creator { get; set; }
 
 
@@ -74,7 +75,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Schema
         /// <inheritdoc/>
         /// </summary>
         [JsonProperty("assets", ItemConverterType =typeof(ConcreteConverter<IAsset, Asset>))]
-        public List<IAsset> Assets { get; set; }
+        public List<Asset> Assets { get; set; }
 
         /// <summary>
         /// <inheritdoc/>

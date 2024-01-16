@@ -1,9 +1,24 @@
 
 export type MondayItemDetailBag = {
-    name: string;
+    item: MondayItemBag
+    status: string;
+    statusIndex: number;
+    showApprove: boolean;
+    showClose: boolean;
+}
+
+export type MondayItemBag = {
+    id: string;
     createdAt: string;
-    updates: MondayUpdateBag[]
-    columnValues: AbstractColumnValue[]
+    name: string;
+    board: MondayBoardBag;
+    columnValues: ColumnValueBag[];
+    updates: MondayUpdateBag[];
+}
+
+export type MondayBoardBag = {
+    id: string;
+    name: string;
 }
 
 export type MondayUpdateBag = {
@@ -26,6 +41,21 @@ export type ColumnValueBag = {
     text: string;
     type: keyof typeof ColumnType;
     value: string;
+    column: Column;
+    files?: {
+        assetId: string;
+        asset: {
+            url: string;
+            name: string;
+            urlThumbnail: string;
+            publicUrl: string;
+        };
+    }[];
+    labelStyle?: {
+        color: string;
+        border: string;
+    };
+    linkedItemIds?: string[]
 }
 
 export type BasicColumnValue = {
@@ -33,22 +63,25 @@ export type BasicColumnValue = {
     text: string;
     type: keyof typeof ColumnType;
     value: string;
+    column: Column
 }
 
 export type Column = {
-
+    id: string;
+    title: string;
+    description: string;
 }
 
 export type FileColumnValue = BasicColumnValue & {
     files: {
-        asset_id: string;
+        assetId: string;
         asset: {
             url: string;
             name: string;
-            url_thumbnail: string;
-            public_url: string;
+            urlThumbnail: string;
+            publicUrl: string;
         };
-    }
+    }[]
 }
 
 export type StatusColumnValue = BasicColumnValue & {
@@ -65,7 +98,7 @@ export type BoardRelationColumnValue = BasicColumnValue & {
     displayValue: string;
     linkedItems: {
         id: string;
-        relativeLink: string;
+        name: string;
     }
     linkedItemIds: string[]
 }

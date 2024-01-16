@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using com.baysideonline.BccMonday.Utilities.Api.Schema;
+using Newtonsoft.Json;
 
 namespace com.baysideonline.BccMonday.Utilities.Api.Responses
 {
@@ -7,7 +8,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Responses
     /// </summary>
     public class ChangeSimpleColumnValueResponse
     {
-        [JsonProperty("change_simple_column_value", ItemConverterType = typeof(ConcreteConverter<IItem, Item>))]
-        public IItem Item { get; set; }
+        [JsonProperty("change_simple_column_value")]
+        public Item Item { get; set; }
     }
 }

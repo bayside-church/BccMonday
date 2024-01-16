@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using com.baysideonline.BccMonday.Utilities.Api.Schema;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Responses
 {
     public class GetAssetsResponse
     {
-        [JsonProperty("assets", ItemConverterType = typeof(ConcreteConverter<IAsset, Asset>))]
-        public List<IAsset> Assets { get; set; }
+        [JsonProperty("assets")]
+        public List<Asset> Assets { get; set; }
     }
 }

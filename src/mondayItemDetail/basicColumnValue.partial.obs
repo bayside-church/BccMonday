@@ -1,0 +1,37 @@
+<template>
+    <div>
+      <div class="mr-3">
+        <p class="font-weight-bold">{{ columnValue.column.title }}</p>
+        <div class="bcc-monday-column-empty" :style="{ 'min-width': '200px' }">
+          <div class="copy-link-area btn-group">
+            <div class="btn">
+              <span>{{ columnValue.text ?? "Unknown" }}</span>
+            </div>
+            <button
+              :id="columnValue.column.title"
+              type="button"
+              class="btn btn-primary btn-copy js-tooltip js-copy"
+              data-toggle="tooltip"
+              data-placement="bottom"
+              title="Copy"
+            >
+              <i :id="columnValue.column.title + ' icon'" class="far fa-clone"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+</template>
+
+<script setup lang="ts">
+import { BasicColumnValue, ColumnValueBag } from "src/ViewModels/MondayItemDetailBag";
+import { ref, PropType } from "vue";
+
+const props = defineProps({
+    columnValue: {
+        type: Object as PropType<ColumnValueBag>,
+        required: true
+    }
+});
+
+</script>

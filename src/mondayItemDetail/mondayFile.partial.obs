@@ -9,7 +9,8 @@ import type { MondayAssetBag } from '../ViewModels/MondayItemDetailBag';
 
 const props = defineProps({
     file: {
-        type: Object as PropType<MondayAssetBag>
+        type: Object as PropType<MondayAssetBag>,
+        required: true
     }
 });
 </script>

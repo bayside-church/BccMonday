@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using com.baysideonline.BccMonday.Utilities.Api.Schema;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Responses
     /// </summary>
     public class AddFileToUpdateResponse
     {
-        [JsonProperty("add_file_to_update", ItemConverterType = typeof(ConcreteConverter<IAsset, Asset>))]
-        public IAsset Asset { get; set; }
+        [JsonProperty("add_file_to_update")]
+        public Asset Asset { get; set; }
     }
 }

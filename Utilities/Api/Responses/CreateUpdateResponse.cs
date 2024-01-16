@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using com.baysideonline.BccMonday.Utilities.Api.Schema;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Responses
     /// </summary>
     public class CreateUpdateResponse
     {
-        [JsonProperty("create_update", ItemConverterType = typeof(ConcreteConverter<IUpdate, Update>))]
-        public IUpdate Update { get; set; }
+        [JsonProperty("create_update")]
+        public Update Update { get; set; }
     }
 }

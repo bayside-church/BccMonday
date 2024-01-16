@@ -1,0 +1,36 @@
+<template>
+    <div>
+      <div class="mr-3">
+        <p class="font-weight-bold">{{ columnValue.column.title }}</p>
+        <div
+          class="text-center"
+          :style="{
+            'background-color': columnValue.labelStyle?.color,
+            'text-overflow': 'ellipsis',
+            'white-space': 'nowrap',
+            'overflow': 'hidden',
+            'padding': '11px 22px',
+            'min-width': '200px',
+            'max-width': '250px',
+            'color': '#ffffff',
+            'border-radius': '10px'
+          }"
+        >
+          <span>{{ columnValue.text || 'Unknown' }}</span>
+        </div>
+      </div>
+    </div>
+</template>
+
+<script setup lang="ts">
+import { ColumnValueBag, StatusColumnValue } from "src/ViewModels/MondayItemDetailBag";
+import { ref, PropType} from "vue";
+
+const props = defineProps({
+    columnValue: {
+        type: Object as PropType<ColumnValueBag>,
+        required: true
+    }
+})
+
+</script>

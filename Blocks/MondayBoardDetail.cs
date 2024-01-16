@@ -42,7 +42,7 @@ namespace com.baysideonline.BccMonday.Blocks
         {
             using (var rockContext = new RockContext())
             {
-                var box = new MondayBoardDetailBox();
+                var box = 1;// new MondayBoardDetailBox();
 
                 return box;
             }
