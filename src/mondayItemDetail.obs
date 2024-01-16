@@ -1,0 +1,176 @@
+<template>
+    <div id="pnlItem" class="panel panel-block">
+        <div class="panel-heading bcc-monday-panel-heading row">
+            <div class="col-xs-6 p-0">
+                <h1 class="panel-title d-flex flex-column justify-content-center">
+                    <div v-text="item.name"></div>
+                    <div>
+                        <span class="text-muted" style="font-size: 0.8rem;" v-text="item.createdAt"></span>
+                    </div>
+                </h1>
+            </div>
+            <div class="col-xs-6 text-right p-0">
+                <RockButton v-if="approveVisible" id="bbtnApprove" class="btn btn-secondary" @click="changeColumnValue('Approve')" v-text="'Approve Request'"/>
+                <RockButton v-if="closeVisible" id="bbtnClose" class="btn btn-secondary" @click="changeColumnValue('Close')" v-text="'Close Request'"/>
+            </div>
+        </div>
+        <div class="panel-body" style="width:100%">
+            <div class="bcc-monday-column-group">
+                <div class="d-flex mb-3 flex-wrap" style="justify-content: space-between">
+                    <template v-for="columnValue in item.columnValues" :key="columnValue.ColumnId">
+                        <FileColumnValue v-if="columnValue.type == 'file'" :columnValue="columnValue"/>
+                        <StatusColumnValue v-else-if="columnValue.type == 'status'" :columnValue="columnValue"/>
+                        <BoardRelationColumnValue v-else-if="columnValue.type == 'board_relation'" :columnValue="columnValue" />
+                        <BasicColumnValue v-else :columnValue="columnValue" />
+                    </template>
+                </div>
+            </div>
+            <div class="mb-3">
+                <RockButton v-if="!newUpdateOpen" id="bbtnNewUpdateOpen" :onclick="toggleVisibility" class="btn btn-primary w-100" v-text="'New Update'"/>
+                <template v-if="newUpdateOpen">
+                    <TextBox id="tbNewUpdate" v-model="newUpdate" textMode="multiline" class="mb-2" placeholder="Write a new update..."/>
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-direction: row-reverse;">
+                        <div>
+                            <RockButton id="bbtnNewUpdateSave" @click="saveUpdate" class="btn btn-primary" v-text="'Save'"/>
+                            <RockButton id="bbtnNewUpdateCancel" @click="toggleVisibility" class="btn btn-secondary" v-text="'Cancel'"/>
+                        </div>
+                        <div>
+                            <FileUploader v-model="fileUploadValue" :uploadAsTemporary="true" uploadButtonText="Upload" :showDeleteButton="true" />
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <template v-for="update in item.updates" :key="update.Id">
+               <MondayUpdate :update="update"/>
+            </template>
+        </div>
+    </div>
+</template>
+
+<script setup lang="ts">
+import { computed, onMounted, provide, ref } from "vue";
+import { onConfigurationValuesChanged, useConfigurationValues, useInvokeBlockAction, useReloadBlock } from "@Obsidian/Utility/block";
+import RockButton from "@Obsidian/Controls/rockButton";
+import { BtnType } from "@Obsidian/Enums/Controls/btnType";
+import { BtnSize } from "@Obsidian/Enums/Controls/btnSize";
+import Panel from "@Obsidian/Controls/panel";
+import TextBox from "@Obsidian/Controls/textBox";
+import FileUploader from "@Obsidian/Controls/fileUploader";
+import type { MondayItemDetailBag, MondayUpdateBag } from "./ViewModels/MondayItemDetailBag";
+import MondayUpdate from "./mondayItemDetail/mondayUpdate.partial.obs";
+import FileColumnValue from "./mondayItemDetail/fileColumnValue.partial.obs";
+import BasicColumnValue from "./mondayItemDetail/basicColumnValue.partial.obs";
+import StatusColumnValue from "./mondayItemDetail/statusColumnValue.partial.obs";
+import BoardRelationColumnValue from "./mondayItemDetail/boardRelationColumnValue.partial.obs";
+import { MondayItemDetailArgs } from "./ViewModels/MondayItemDetailArgs";
+
+const notFound = ref(false);
+const config = useConfigurationValues<MondayItemDetailBag>();
+const invokeBlockAction = useInvokeBlockAction();
+const reloadBlock = useReloadBlock();
+console.log("Config from block:\n ",config);
+
+//#region Values
+
+const isRunning = ref<boolean>(false);
+const runResult = ref<string>("");
+const errorMessage = ref<string>("");
+const item = config.item;
+const newUpdate = ref("");
+const newUpdateOpen = ref(false);
+const fileUploadValue = ref<{text: string, value: string}>();
+const approveVisible = ref(config.showApprove);
+const closeVisible = ref(config.showClose);
+
+//#endregion
+
+//#region Computed Values
+const getItemDetailArgs: () => MondayItemDetailArgs = () => {
+    return {
+        mondayItemId: item.id,
+        mondayBoardId: item.board.id
+    }
+};
+
+provide("getItemDetailArgs", getItemDetailArgs);
+provide("itemConfig", item);
+
+//#endregion
+
+const toggleVisibility = () => {
+  newUpdateOpen.value = !newUpdateOpen.value;
+  newUpdate.value = "";
+  fileUploadValue.value = undefined;
+};
+
+const hideOnClickOutside = () => {
+  newUpdateOpen.value = false;
+};
+
+//#region Events
+
+type saveUpdateArgs = {
+    args: MondayItemDetailArgs,
+    text: string,
+    fileUploaded?: string
+}
+
+async function saveUpdate(): Promise<void> {
+    const errorMessage = "";
+    const updateText = newUpdate.value;
+    console.log(updateText);
+
+    const blockActionArgs: saveUpdateArgs = {
+        args: getItemDetailArgs(),
+        text: updateText,
+    }
+
+    if (fileUploadValue && fileUploadValue.value) {
+        blockActionArgs.fileUploaded = fileUploadValue.value.value;
+    }
+
+    const response = await invokeBlockAction<MondayUpdateBag>("SaveUpdate", blockActionArgs);
+
+    if (response.data) {
+        const update = response.data;
+        item.updates.unshift(update);
+    }
+
+    newUpdate.value = "";
+    newUpdateOpen.value = !newUpdateOpen.value;
+}
+
+async function changeColumnValue(statusChange: string): Promise<void> {
+    const errorMessage = "";
+    const response = await invokeBlockAction<{ statusText: string, color: string }>("ChangeColumnValue", {
+        args: getItemDetailArgs(),
+        statusChange: statusChange
+    });
+
+    if (response.data) {
+        const { color, statusText } = response.data;
+        //change this to not be default true, pop in some config value
+        approveVisible.value = showStatusButton(statusText, config.showApprove);
+        closeVisible.value = statusChange !== 'Close';//showStatusButton(statusText);
+        item.columnValues[config.statusIndex].text = statusText;
+        item.columnValues[config.statusIndex].labelStyle = { color: color, border: "" };
+    }
+}
+
+function showStatusButton(status: string, showApprove?: boolean): boolean {
+    const currentStatus = item.columnValues[config.statusIndex].text;
+    const foo = currentStatus !== status && (showApprove === undefined || showApprove)
+    console.log(foo, currentStatus, status);
+    return foo;
+}
+
+//#endregion
+
+//#region Functions
+
+//#endregion
+
+onConfigurationValuesChanged(reloadBlock);
+
+</script>

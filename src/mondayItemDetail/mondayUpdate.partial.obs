@@ -1,0 +1,82 @@
+<template>
+    <div id="mondayUpdate" class="bcc-monday-well-group">
+        <div class="well">
+            <p v-text="update.textBody"></p>
+            <div>
+                <span class="font-weight-bold" v-text="update.creatorName"></span>
+                <span v-text="' on ' + update.createdAt"></span>
+            </div>
+            <template v-for="file in update.files">
+                <MondayFile :file="file"></MondayFile>
+            </template>
+        </div>
+        <template v-for="reply in update.replies" :key="reply.Id">
+            <MondayReply :reply="reply"></MondayReply>
+        </template>
+        <div class="row">
+            <div class="col-md-12 d-flex mb-2 p-0 mt-2">
+                <div class="d-flex align-items-center">
+                    <i class="fa fa-reply fa-rotate-180 fa-2x m-2"></i>
+                </div>
+                <div class="d-flex flex-column justify-content-center w-100">
+                    <TextBox v-if="newReplyOpen" id="tbNewReply" v-model="newReply" textMode="multiline" class="mb-2" placeholder="Write a new reply..."/>
+                    <div>
+                        <RockButton v-if="!newReplyOpen" id="bbtnNewReplyOpen" :onclick="toggleVisibility" class="btn btn-secondary">New Reply</RockButton>
+                        <RockButton v-if="newReplyOpen" id="bbtnNewReplySave" @click="saveReply" class="btn btn-primary">Save</RockButton>
+                        <RockButton v-if="newReplyOpen" id="bbtnNewReplyCancel" @click="toggleVisibility" class="btn btn-secondary">Cancel</RockButton>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script setup lang="ts">
+import { PropType, computed, inject, onMounted, ref } from "vue";
+import type { MondayUpdateBag, MondayItemDetailBag } from "../ViewModels/MondayItemDetailBag";
+import MondayReply from "./mondayReply.partial.obs";
+import MondayFile from "./mondayFile.partial.obs"
+import { useInvokeBlockAction } from "@Obsidian/Utility/block";
+import { MondayItemDetailArgs } from "src/ViewModels/MondayItemDetailArgs";
+import TextBox from "@Obsidian/Controls/textBox";
+import RockButton from "@Obsidian/Controls/rockButton";
+
+const invokeBlockAction = useInvokeBlockAction();
+const getItemDetailArgs = inject("getItemDetailArgs") as () => MondayItemDetailArgs;
+const item = inject("itemConfig") as MondayItemDetailBag;
+
+const notFound = ref(false);
+const props = defineProps({
+    update: {
+        type: Object as PropType<MondayUpdateBag>,
+        required: true
+    }
+})
+
+const newReply = ref("");
+const newReplyOpen = ref(false);
+
+function toggleVisibility(): void {
+    newReplyOpen.value = !newReplyOpen.value;
+    newReply.value = "";
+}
+
+
+async function saveReply(): Promise<void> {
+    const errorMessage = "";
+    const replyText = newReply.value;
+    const response = await invokeBlockAction<MondayUpdateBag>("SaveReply", {
+        args: getItemDetailArgs(),
+        text: replyText,
+        updateId: props.update.id
+    });
+
+    if (response.data) {
+        const reply = response.data;
+        props.update.replies?.push(reply);
+    }
+
+    toggleVisibility();
+}
+
+</script>

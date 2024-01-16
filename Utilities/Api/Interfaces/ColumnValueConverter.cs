@@ -1,104 +1,52 @@
 ﻿using System;
 using System.Collections.Generic;
+using com.baysideonline.BccMonday.Utilities.Api.Schema;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Rock.UniversalSearch;
 
 namespace com.baysideonline.BccMonday.Utilities.Api.Interfaces
 {
-    public class ColumnValueConverter : JsonConverter
+    public class ColumnValueConverter : JsonConverter<AbstractColumnValue>
     {
-        public override bool CanConvert(Type objectType)
+        private readonly Dictionary<string, Type> columnTypeMappings;
+
+        public ColumnValueConverter()
         {
-            return typeof(AbstractColumnValue).IsAssignableFrom(objectType);
+            columnTypeMappings = new Dictionary<string, Type>
+        {
+            {"status", typeof(StatusColumnValue)},
+            {"file", typeof(FileColumnValue)},
+            {"board-relation", typeof(BoardRelationColumnValue)},
+            // Add other mappings here
+        };
         }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override AbstractColumnValue ReadJson(JsonReader reader, Type objectType, AbstractColumnValue existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
-            var jo = JObject.Load(reader);
+            JObject jsonObject = JObject.Load(reader);
+            string type = jsonObject["type"].ToString();
 
-            var cvType = (string)jo["type"];
-
-            AbstractColumnValue columnValue = new ColumnValue();
-            if (!string.IsNullOrWhiteSpace(cvType))
+            if (columnTypeMappings.TryGetValue(type, out Type concreteType))
             {
-                switch(cvType)
-                {
-                    //TODO(Noah): move these into constructors?
-                    case "color":
-                    {
-                        var color = "";
-                        var infoStr = (string)jo["additional_info"];
-                        if (!string.IsNullOrWhiteSpace(infoStr))
-                        {
-                            var info = JsonConvert.DeserializeObject<dynamic>(infoStr);
-                            color = info["color"].Value;
-                        }
-                        columnValue = new ColorColumnValue { Color = color };
-                        break;
-                    }
-                    case "file":
-                    {
-                        var assetIds = new List<long>();
-                        var valueStr = (string)jo["value"];
-                        if (!string.IsNullOrWhiteSpace(valueStr))
-                        {
-                            var fileInfo = JsonConvert.DeserializeObject<dynamic>(valueStr);
-                            var files = fileInfo["files"];
-                            if (files != null)
-                            {
-                                foreach (var asset in files)
-                                {
-                                    if (asset["fileType"].Value == "MONDAY_DOC")
-                                    {
-                                        continue;
-                                    }
-                                    assetIds.Add(asset["assetId"].Value);
-                                }
-                            }
-                        }
-                        //TODO(Noah): Grab the actual files from Monday.com to store inside the FileColumnValue
-                        //NOTE(Noah): This could go inside of the CreateControl() method
-                        columnValue = new FileColumnValue { AssetIds = assetIds };
-                        break;
-                    }
-                    case "board-relation":
-                    {
-                        var pulseIdValuesStr = (string)jo["value"];
-                        if (!string.IsNullOrWhiteSpace(pulseIdValuesStr))
-                        {
-                            var pulseIdValues = JsonConvert.DeserializeObject<dynamic>(pulseIdValuesStr);
-                            var itemIds = new List<long>();
-                            if (pulseIdValues != null)
-                            {
-                                if (pulseIdValues["linkedPulseIds"] != null && pulseIdValues["linkedPulseIds"].Count > 0)
-                                {
-                                    foreach (var linkedPulseId in pulseIdValues["linkedPulseIds"])
-                                    {
-                                        itemIds.Add(linkedPulseId["linkedPulseId"].Value);
-                                    }
-                                }
-                            }
-
-                            columnValue = new ItemListColumnValue { ItemIds = itemIds };
-                        }
-                        
-                        break;
-                    }
-                    default:
-                    {
-                        columnValue = new ColumnValue();
-                        break;
-                    }
-                }
+                AbstractColumnValue columnValue = (AbstractColumnValue)Activator.CreateInstance(concreteType);
+                serializer.Populate(jsonObject.CreateReader(), columnValue);
+                return columnValue;
             }
-
-            serializer.Populate(jo.CreateReader(), columnValue);
-            return columnValue;
+            else
+            {
+                var columnValue = new ColumnValue();
+                serializer.Populate(jsonObject.CreateReader(), columnValue);
+                return columnValue;
+                //throw new JsonSerializationException($"Unknown type: {type}");
+            }
         }
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, AbstractColumnValue value, JsonSerializer serializer)
         {
-            serializer.Serialize(writer, value);
+//            var jsonObject = JObject.FromObject(value);
+//            jsonObject.WriteTo(writer);
+            serializer.Serialize(writer, value, value.GetType());
         }
     }
 }

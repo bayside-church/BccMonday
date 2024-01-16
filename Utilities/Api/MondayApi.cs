@@ -1,26 +1,49 @@
 ﻿using com.baysideonline.BccMonday.Utilities.Api.Config;
+using com.baysideonline.BccMonday.Utilities.Api.Responses;
+using com.baysideonline.BccMonday.Utilities.Api.Schema;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using Rock.Data;
 using Rock.Model;
+using Rock.Web.Cache;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 
 namespace com.baysideonline.BccMonday.Utilities.Api
 {
+    public enum MondayApiType
+    {
+        Standard,
+        File
+    }
+
+    public class MondayApiUrls
+    {
+        public static readonly Dictionary<MondayApiType, string> Urls = new Dictionary<MondayApiType, string>
+        {
+            { MondayApiType.Standard, "https://api.monday.com/v2" },
+            { MondayApiType.File, "https://api.monday.com/v2/file" }
+        };
+    }
+
     public class MondayApi : IMondayApi
     {
-        private readonly string MONDAY_API_URL = "https://api.monday.com/v2";
-
+        private readonly string _apiUrl;
         private string _apiKey;
-
         protected IRestClient _client;
-
         protected IRestRequest _request;
-
         protected bool _isInitialized = false;
+
+        public MondayApi(MondayApiType apiType = MondayApiType.Standard)
+        {
+            if (!MondayApiUrls.Urls.TryGetValue(apiType, out _apiUrl))
+            {
+                throw new ArgumentException("Invalid API Type specified", nameof(apiType));
+            }
+        }
 
         public MondayInitializeResponse Initialize()
         {
@@ -50,10 +73,10 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             }
 
             // initialize rest client & rest request
-            _client = new RestClient(MONDAY_API_URL);
+            _client = new RestClient(_apiUrl);
             _request = new RestRequest("/")
                 .AddHeader("Authorization", _apiKey);
-            
+
             _isInitialized = true;
 
             return new MondayInitializeResponse()
@@ -65,121 +88,178 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
         #region mutations
 
-        public IUpdate AddUpdateToItem(long itemId, string body, long? parentUpdateId = null)
+        public Update AddUpdateToItem(long itemId, string body, long? parentUpdateId = null)
         {
             if (!Initialize().IsOk())
                 return null;
 
-            var query = string.Empty;
-
-            query = parentUpdateId != null
-                ? "mutation {" +
-                  "create_update (item_id: " + itemId + ", body: \"" + body + "\", parent_id: " + parentUpdateId.Value +
-                  @") {
+            var query = parentUpdateId != null
+                ? @"mutation ($itemId: ID, $body: String!, $parentUpdateId: ID){
+                        create_update (item_id: $itemId, body: $body, parent_id: $parentUpdateId) {
+                            id
+                            body
+                            text_body
+                            created_at
+                            creator_id
+                            creator {
                                 id
-                                body
-                                text_body
-                                created_at
-                                creator_id
-                                creator {
-                                    id
-                                    name
+                                name
+                            }
+                        }
+                    }"
+                : @"mutation ($itemId: ID, $body: String!) {
+                        create_update (item_id: $itemId, body: $body) {
+                            id
+                            body
+                            text_body
+                            created_at
+                            creator_id
+                            creator {
+                                id
+                                name
+                            }
+                        }
+                    }";
+
+            var variables = new Dictionary<string, object>()
+            {
+                { "itemId", itemId },
+                { "body", body },
+                { "parentUpdateId", parentUpdateId }
+            };
+
+            var queryData = Query<CreateUpdateResponse>(query, variables);
+            var update = queryData.Update;
+            return update;
+        }
+
+        public StatusColumnValue ChangeColumnValue(long boardId, long itemId, string columnId, string newValue)
+        {
+            if (!Initialize().IsOk())
+                return null;
+
+            string query = @"
+                mutation ($boardId: ID!, $columnId: String!, $itemId: ID, $newValue: String){
+                    change_simple_column_value(
+                        board_id: $boardId
+                        column_id: $columnId
+                        item_id: $itemId
+                        value: $newValue)
+                        {
+                            id
+                            column_values(ids: [$columnId]) {
+                                id
+                                text
+                                type
+                                value
+                                ... on StatusValue {
+                                    label_style {
+                                        color
+                                    }
                                 }
                             }
-                        }"
-                : "mutation {" +
-                  "create_update (item_id: " + itemId + ", body: \"" + body + "\"" + @") {
+                        }
+                    }";
+
+            var variables = new Dictionary<string, object>()
+            {
+                { "boardId", boardId },
+                { "columnId", columnId },
+                { "itemId", itemId },
+                { "newValue", newValue }
+            };
+
+            var queryData = Query<ChangeSimpleColumnValueResponse>(query, variables);
+            var item = queryData.Item;
+            var columnValue = item.ColumnValues[0];
+
+            return columnValue as StatusColumnValue;
+        }
+
+        public Asset AddFileToUpdate(long updateId, BinaryFile binaryFile)
+        {
+            if (!Initialize().IsOk())
+            {
+                return null;
+            }
+
+            var filePath = new Uri(GlobalAttributesCache.Get().GetValue("PublicApplicationRoot"))
+                + $"GetFile.ashx?id={binaryFile.Id}";
+            var fileName = binaryFile.FileName;
+            var fileSize = binaryFile.FileSize;
+            const long MAX_BYTES = 100000000;
+
+            if (fileSize > MAX_BYTES)
+            {
+                return null;
+            }
+
+            using (WebClient webClient = new WebClient())
+            {
+                var bytes = webClient.DownloadData(filePath);
+                string query = @"
+                        mutation ($file: File!, $updateId: ID!) {
+                            add_file_to_update(file: $file, update_id: $updateId) {
                                 id
-                                body
-                                text_body
-                                created_at
-                                creator_id
-                                creator {
-                                    id
-                                    name
-                                }
+                                file_size
+                                name
+                                public_url
+                                url_thumbnail
                             }
                         }";
 
-            var queryData = Query(query);
-            var updateStr = Convert.ToString(queryData["create_update"]);
+                var variables = new Dictionary<string, object>
+                {
+                    { "updateId", updateId }
+                };
 
-            if (updateStr != null)
-            {
-                var update = JsonConvert.DeserializeObject<Update>(updateStr);
-                return update;
+                var data = FileQuery<AddFileToUpdateResponse>(query, bytes, fileName, variables);
+                if (data == null) return null;
+                var asset = data.Asset;
+
+                return asset;
             }
-
-            return null;
         }
-
-        //TODO(Noah): This API call returns an Item, not a Column Value.
-        //  Return a bool? Or the item singled out to the column value.
-        public bool ChangeColumnValue(long boardId, long itemId, string columnId, string newValue)
-        {
-            if (!Initialize().IsOk())
-                return false;
-
-            string query = "mutation { change_simple_column_value(board_id: " + boardId.ToString() + " column_id: \"" + columnId + "\" item_id:" + itemId.ToString() + " value: \"" + newValue + "\") { id } }";
-
-            var queryData = Query(query);
-            //var data = GetRootObject(queryData, "change_simple_column_value");
-            var data = queryData["change_simple_column_value"];
-
-            if (data != null)
-            {
-                // TODO: build a new column value based on changed value
-
-                return true;
-            }
-
-            return false;
-        }
-
         #endregion
 
         #region queries
 
-        public List<IFile> GetFilesByAssetIds(List<long> ids)
-        {
-            if (!Initialize().IsOk())
-                return null; MondayApiResponse<List<IFile>>.CreateErrorResponse();
-
-            var query = @"
-                query {
-                    assets (ids: [" + string.Join(",", ids) + @"]) {
-                    id
-                    public_url
-                    name
-                    file_size
-                    url_thumbnail
-                }
-            }";
-
-            var queryData = Query(query);
-            //GetRootObject
-            if (queryData["assets"] != null && queryData["assets"].Count > 0)
-            {
-                string fileStr = Convert.ToString(queryData["assets"]);
-
-                var files = JsonConvert.DeserializeObject<List<File>>(fileStr);
-                if (files != null && files.Any())
-                {
-                    return files.ConvertAll(o => (IFile)o);
-                }
-            }
-
-            return null;
-        }
-
-        public IBoard GetBoard(long id)
+        public List<Asset> GetFilesByAssetIds(List<long> ids)
         {
             if (!Initialize().IsOk())
                 return null;
 
             var query = @"
-                query {
-                    boards (ids:" + id + @" limit:1) {
+                query ($assetIds: [ID!]!) {
+                    assets (ids: [$assetIds]) {
+                        id
+                        public_url
+                        name
+                        file_size
+                        url_thumbnail
+                    }
+                }";
+
+            var variables = new Dictionary<string, object>()
+            {
+                { "assetIds", string.Join(",", ids)}
+            };
+
+            var queryData = Query<GetAssetsResponse>(query, variables);
+            if (queryData == null) return null;
+            var assets = queryData.Assets;
+            if (assets.Count <= 0 ) return null;
+            return assets;
+        }
+
+        public Board GetBoard(long id)
+        {
+            if (!Initialize().IsOk())
+                return null;
+
+            var query = @"
+                query ($boardId: ID!) {
+                    boards (ids: [$boardId] limit:1) {
   	                    name
   	                    id
                         columns {
@@ -191,23 +271,17 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 	                }
                 }
             ";
-
-            var queryData = Query(query);
-            //TODO(Noah): First of many (but really only one)
-            //GetRootObject
-            if (queryData["boards"] != null && queryData["boards"].Count > 0)
+            var variables = new Dictionary<string, object>()
             {
-                string boardStr = Convert.ToString(queryData["boards"][0]);
+                { "boardId", id }
+            };
 
-                var board = JsonConvert.DeserializeObject<Board>(boardStr);
+            var queryData = Query<GetBoardsResponse>(query, variables);
+            if (queryData == null) return null;
+            var boards = queryData.Boards;
 
-                if (board != null)
-                {
-                    return board;
-                }
-            }
-
-            return null;
+            if (boards.Count <= 0) return null;
+            return boards[0];
         }
 
         public string GetWorkspace(long boardId)
@@ -217,25 +291,28 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 return null;
             }
             var query = @"
-                query {
-                    boards(ids:" + boardId + @" ) {
+                query ($boardId: ID!){
+                    boards(ids: [$boardId] ) {
+                        id
+                        name
                         workspace {
+                            id
                             name
                         }
                     }
                 }";
-            var queryData = Query(query);
-            var data = GetRootObject(queryData, "boards");
-
-            if (data != null)
+            var variables = new Dictionary<string, object>()
             {
-                return data["workspace"]["name"].Value;
-            }
+                { "boardId", boardId }
+            };
 
-            return null;
+            var queryData = Query<GetBoardsResponse>(query, variables);//GetBoardWorkspaceResponse>(query, variables);
+            var board = queryData.Boards[0];
+            var workspace = board.Workspace;
+            return workspace.Name ?? null;
         }
 
-        public List<IBoard> GetBoards()
+        public List<Board> GetBoards()
         {
             if (!Initialize().IsOk())
                 return null;
@@ -249,219 +326,358 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                     }
                 }";
 
-            var queryData = Query(query);
-
-            if (queryData["boards"] != null && queryData["boards"].Count > 0)
-            {
-                var boardJArray = new JArray();
-                foreach (var board in queryData["boards"])
-                {
-                    if (string.Equals(board["type"].ToString(), "board"))
-                    {
-                        boardJArray.Add(board);
-                    }
-                }
-
-                string boardArrayStr = Convert.ToString(boardJArray);
-                var boards = JsonConvert.DeserializeObject<List<Board>>(boardArrayStr);
-
-                if (boards != null && boards.Any())
-                {
-                    return boards.ConvertAll(o => (IBoard)o);
-                }
-            }
-            return null;
+            var queryData = Query<GetBoardsResponse>(query);
+            if (queryData == null) return null;
+            var boards = queryData.Boards;
+            boards = boards.Where(b => b.BoardType == "board").ToList();
+            return boards;
         }
 
-        public IItem GetItem(long id)
+        public Item GetItem(long id)
         {
             if (!Initialize().IsOk())
                 return null;
 
             var query = @"
-                query {
-                    items(ids: [" + id + @"], limit:1) {
+                query ($itemId: ID!) {
+                  items(ids: [$itemId], limit: 1) {
+                    id
+                    name
+                    created_at
+                    board {
+                      id
+                      name
+                    }
+                    column_values {
+                      id
+                      text
+                      type
+                      value
+                      ... on ButtonValue {
+                        id
+                        color
+                        buttonLabel: label
+                      }
+                      ... on BoardRelationValue {
+                        value
+                        display_value
+                        linked_items {
+                          id
+                          relative_link
+                        }
+                        linked_item_ids
+                      }
+                      ... on DateValue {
+                        id
+                        date
+                        time
+                      }
+                      ... on StatusValue {
+                        id
+                        value
+                        index
+                        statusLabel: label
+                        is_done
+                        label_style {
+                          color
+                          border
+                        }
+                      }
+                      ... on EmailValue {
+                        id
+                        email
+                      }
+                      ... on FileValue {
+                        id
+                        files {
+                          ... on FileDocValue {
+                            file_id
+                            url
+                          }
+                          ... on FileAssetValue {
+                            asset_id
+                            asset {
+                              url
+                              name
+                              url_thumbnail
+                              public_url
+                            }
+                          }
+                        }
+                      }
+                      column {
+                        id
+                        title
+                        settings_str
+                        description
+                        type
+                      }
+                    }
+                    updates {
+                      id
+                      body
+                      text_body
+                      created_at
+                      creator_id
+                      assets {
                         id
                         name
+                        file_size
+                        public_url
+                        url_thumbnail
+                      }
+                      creator {
+                        id
+                        name
+                      }
+                      replies {
+                        id
+                        body
+                        text_body
                         created_at
-                        board {
-                            id
-                            name
-				            columns {
-                                id
-                                type
-                                title
-                                settings_str
-                            }
-    	                }
-                        column_values {
-                            id
-                            text
-                            title
-                            type
-                            value
-                            additional_info
+                        creator_id
+                        creator {
+                          id
+                          name
                         }
-                        updates {
-                            id
-                            body
-                            text_body
-                            created_at
-                            creator_id
-                            assets {
-                                id
-                                name
-                                file_size
-                                public_url
-                                url_thumbnail
-                            }
-                            creator {
-                                id
-                                name
-                            }
-                            replies {
-                                id
-                                body
-                                text_body
-                                created_at
-                                creator_id
-                                creator {
-                                    id
-                                    name
-                                }
-                            }
-                        }
+                      }
                     }
+                  }
                 }
             ";
 
-            var queryData = Query(query);
-            //GetRootObject
-            if (queryData["items"] != null && queryData["items"].Count > 0)
+            var variables = new Dictionary<string, object>()
             {
-                var itemDetailStr = Convert.ToString(queryData["items"][0]);
-                var item = JsonConvert.DeserializeObject<Item>(itemDetailStr);
+                { "itemId", id }
+            };
 
-                if (item != null)
-                {
-                    return item;
-                }
-            }
+            var queryData = Query<GetItemsResponse>(query, variables);
+            if (queryData == null) return null;
+            var items = queryData.Items;
 
-            return null;
+            if (items.Count == 0) return null;
+
+            var item = items[0];
+            return item;
         }
 
-        public List<IItem> GetItemsByBoard(long boardId, string emailMatchColumnId, string statusColumnId)
+        public List<Item> GetItemsByBoard(long boardId, string emailMatchColumnId, string statusColumnId)
         {
             if (!Initialize().IsOk())
                 return null;
 
-            var query = @"
-                query {
-                    boards(ids: " + boardId + @", limit: 1) {
+            List<Item> allItems = new List<Item>();
+
+            // Initial query
+            var initialQuery = @"
+    query( $boardId: ID!, $emailColumnId: String!, $statusColumnId: String!) {
+        boards(ids: [$boardId], limit: 1) {
+            id
+            items_page(limit: 500) {
+                cursor
+                items {
+                    id
+                    name
+                    created_at
+                    column_values(ids: [ $emailColumnId, $statusColumnId ]) {
                         id
-                        items (limit: 1000){
+                        text
+                        type
+                        value
+                        column {
                             id
-                            name
-                            created_at
-                            column_values(ids: [" + "\"" + emailMatchColumnId + "\",\"" + statusColumnId + "\"" + @"]) {
-                                id
-                                title
-                                text
-                                type
-                                value
-                                additional_info
-                            }
+                            title
+                            settings_str
                         }
+                        ... on StatusValue {
+                        id
+                        value
+                        index
+                        statusLabel: label
+                        is_done
+                        label_style {
+                          color
+                          border
+                        }
+                      }
                     }
-                }";
-
-            var queryData = Query(query);
-            if (queryData["boards"] != null && queryData["boards"].Count > 0)
-            {
-                string boardStr = Convert.ToString(queryData["boards"][0]);
-                var board = JsonConvert.DeserializeObject<Board>(boardStr);
-
-                if (board != null && board.Items != null)
-                {
-                    var items = board.Items;
-                    return items;
                 }
             }
+        }
+    }";
 
-            return null;
+            var variables = new Dictionary<string, object>()
+            {
+                { "boardId", boardId },
+                { "emailColumnId", emailMatchColumnId },
+                { "statusColumnId", statusColumnId }
+            };
+            var initialQueryData = Query <GetBoardsResponse> (initialQuery, variables);
+            var board = initialQueryData.Boards[0];
+            var itemsPage = board.ItemsPage;
+            string cursor = itemsPage.Cursor;
+
+            // Process initial items
+            var initialItems = itemsPage.Items.ConvertAll(i => (Item)i);
+            if (initialItems != null)
+            {
+                allItems.AddRange(initialItems);
+            }
+
+            while (!string.IsNullOrEmpty(cursor))
+            {
+                var nextItemsQuery =
+                    @"query ($cursorVal: String, $emailColumnId: String!, $statusColumnId: String!) {
+                        next_items_page(cursor: $cursorVal, limit: 1) {
+                            cursor
+                            items {
+                                id
+                                name
+                                created_at
+                                column_values(ids: [$emailColumnId, $statusColumnId]) {
+                                    id
+                                    text
+                                    type
+                                    value
+                                    column {
+                                        id
+                                        title
+                                        settings_str
+                                    }
+                                    ... on StatusValue {
+                                        id
+                                        value
+                                        index
+                                        statusLabel: label
+                                        is_done
+                                        label_style {
+                                            color
+                                            border
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }";
+
+                variables = new Dictionary<string, object>()
+                {
+                    { "cursorVal", cursor },
+                    { "emailColumnId", emailMatchColumnId },
+                    { "statusColumnId", statusColumnId }
+                };
+
+                var nextItemsPageData = Query<GetNextItemsPageResponse>(nextItemsQuery, variables);
+                if (nextItemsPageData == null) return allItems;
+                var nextItemsPage = nextItemsPageData.NextItemsPage;
+                cursor = nextItemsPage.Cursor;
+
+                var nextItems = nextItemsPage.Items.ConvertAll(i => (Item)i);
+                allItems.AddRange(nextItems);
+            }
+
+            return allItems;
         }
 
         #endregion
         #region private methods
-
-        private dynamic Query(string query)
+        private T Query<T>(string query, object variables = null)
         {
             if (_isInitialized)
             {
-                _request.AddJsonBody(new { query });
+                _request.AddJsonBody(new { query, variables });
+                _request.AddHeader("API-Version", "2024-01");
 
                 var res = _client.Post(_request);
 
-                if (res.StatusCode == System.Net.HttpStatusCode.OK)
+                if (res.StatusCode == HttpStatusCode.OK)
                 {
                     var content = res.Content;
-                    var queryData = JsonConvert.DeserializeObject<dynamic>(content);
+                    var queryData = JsonConvert.DeserializeObject<GraphQLResponse<T>>(content);
 
-                    if (queryData["data"] != null)
+                    if (queryData.Data != null)
                     {
-                        return queryData["data"];
+                        return queryData.Data;
                     }
-                    else
+                    else if (queryData.Errors != null && queryData.Errors.Count > 0)
                     {
-                        string errorMessage = queryData["errors"][0]["message"].Value;
-                        ExceptionLogService.LogException(new Exception(string.Format("{0} | query: {1}", errorMessage, query), new Exception("BccMonday")));
-                        return null;
+                        string errorMessage = queryData.Errors[0].Message;
+                        ExceptionLogService.LogException(new Exception($"{errorMessage} | query: {query}", new Exception("BccMonday")));
                     }
-                }else if (res.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+                }
+                else if (res.StatusCode == HttpStatusCode.InternalServerError)
                 {
-                    string errorMessage = string.Format("Monday.com is having technical issues. Your API Request did not go through. Query: {0}", query);
+                    string errorMessage = $"Monday.com is having technical issues. Your API Request did not go through. Query: {query}";
                     ExceptionLogService.LogException(new Exception(errorMessage, new Exception("BccMonday")));
                 }
             }
 
-            return null;
+            return default;
         }
 
-        private dynamic GetRootObject(dynamic data, string key)
+        private T FileQuery<T>(string query, byte[] bytes, string fileName, object variables = null)
         {
-            if (data != null && data[key] != null)
+            _request.AddHeader("Content-Type", "multipart/form-data");
+            _request.AddJsonBody(new { query, variables });
+            _request.AddFile("variables[file]", bytes, fileName);
+            var response = _client.Execute(_request);
+
+            if (response.StatusCode == HttpStatusCode.OK)
             {
-                if (data[key].GetType() == typeof(JArray))
+                var queryData = JsonConvert.DeserializeObject<GraphQLResponse<T>>(response.Content);
+
+                if (queryData.Data != null)
                 {
-                    if (((JArray)data[key]).Count > 0) return data[key][0];
+                    return queryData.Data;
                 }
-                else
+                else if (queryData.Errors != null && queryData.Errors.Count > 0)
                 {
-                    if (((JObject)data[key]).Count > 0) return data[key][0];
+                    string errorMessage = queryData.Errors[0].Message;
+                    ExceptionLogService.LogException(new Exception($"{errorMessage} | query: {query}", new Exception("BccMonday")));
+                }
+            }
+            else if (response.StatusCode == HttpStatusCode.InternalServerError)
+            {
+                string errorMessage = $"Monday.com is having technical issues. Your API Request did not go through. Query: {query}";
+                ExceptionLogService.LogException(new Exception(errorMessage, new Exception("BccMonday")));
+            }
+
+            return default(T);
+        }
+
+        private T Mutation<T>(string query)
+        {
+            if (_isInitialized)
+            {
+                _request.AddJsonBody(new { query });
+                _request.AddHeader("API-Version", "2023-10");
+
+                var res = _client.Post(_request);
+
+                if (res.StatusCode == HttpStatusCode.OK)
+                {
+                    var content = res.Content;
+                    var queryData = JsonConvert.DeserializeObject<GraphQLResponse<T>>(content);
+
+                    if (queryData.Data != null)
+                    {
+                        return queryData.Data;
+                    }
+                    else if (queryData.Errors != null && queryData.Errors.Count > 0)
+                    {
+                        string errorMessage = queryData.Errors[0].Message;
+                        ExceptionLogService.LogException(new Exception($"{errorMessage} | query: {query}", new Exception("BccMonday")));
+                    }
+                }
+                else if (res.StatusCode == HttpStatusCode.InternalServerError)
+                {
+                    string errorMessage = $"Monday.com is having technical issues. Your API Request did not go through. Query: {query}";
+                    ExceptionLogService.LogException(new Exception(errorMessage, new Exception("BccMonday")));
                 }
             }
 
-            return null;
+            return default(T);
         }
-
-        private dynamic GetRootObjectList(dynamic data, string key)
-        {
-            if (data != null && data[key] != null)
-            {
-                if (data[key].GetType() == typeof(JArray))
-                {
-                    if (((JArray)data[key]).Count > 0) return data[key];
-                }
-                else
-                {
-                    if (((JObject)data[key]).Count > 0) return data[key];
-                }
-            }
-
-            return null;
-        }
-
         # endregion
     }
 }

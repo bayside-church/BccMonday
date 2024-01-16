@@ -1,0 +1,27 @@
+<template>
+    <div class="row d-flex flex-nowrap align-items-center">
+        <i class="fa fa-reply fa-rotate-180 fa-2x m-2 d-inline-block"></i>
+        <div class="well d-inline-block">
+            <p v-text="reply.textBody"></p>
+            <div>
+                <span style="word-break: break-all" class="font-weight-bold" v-text="reply.creatorName"></span>
+                <span v-text="' on ' + reply.createdAt"></span>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script setup lang="ts">
+import { computed, onMounted, ref, inject, PropType } from "vue";
+import type { MondayUpdateBag } from "../ViewModels/MondayItemDetailBag";
+import TextBox from "@Obsidian/Controls/textBox";
+import RockButton from "@Obsidian/Controls/rockButton";
+
+const props = defineProps({
+    reply: {
+        type: Object as PropType<MondayUpdateBag>,
+        required: true
+    }
+});
+
+</script>

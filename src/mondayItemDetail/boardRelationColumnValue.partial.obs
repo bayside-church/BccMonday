@@ -1,0 +1,30 @@
+<template>
+    <div class="mr-3">
+      <p class="font-weight-bold">{{ columnValue.column.title }}</p>
+      <div style="min-width: 200px">
+        <div v-for="linkedItemId in columnValue.linkedItemIds" :key="linkedItemId">
+          <a :href="generateUrl(linkedItemId)">Item</a>
+        </div>
+      </div>
+    </div>
+</template>
+
+<script setup lang="ts">
+import { BoardRelationColumnValue, ColumnValueBag } from "src/ViewModels/MondayItemDetailBag";
+import { PropType } from "vue";
+
+const props = defineProps({
+    columnValue: {
+        type: Object as PropType<ColumnValueBag>,
+        required: true
+    }
+});
+
+function generateUrl(itemId: string): string {
+    const currentUrl = window.location.href;
+    const urlWithoutQuery = currentUrl.split('?')[0];
+
+    const url = `${urlWithoutQuery}?MondayItemId=${itemId}`;
+    return url;
+}
+</script>
