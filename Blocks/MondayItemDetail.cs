@@ -122,6 +122,7 @@ namespace com.baysideonline.BccMonday.Blocks
                         Column = new MondayColumnBag
                         {
                             Id = c.Column.Id,
+                            Title = c.Column.Title,
                         }
                     };
 

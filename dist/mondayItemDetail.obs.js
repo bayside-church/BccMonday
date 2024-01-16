@@ -76,7 +76,7 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
       };
       var _hoisted_4$5 = ["textContent"];
       var _hoisted_5$3 = ["textContent"];
-      var _hoisted_6$3 = ["textContent"];
+      var _hoisted_6$2 = ["textContent"];
       var script$7 = defineComponent({
         name: 'mondayReply.partial',
         props: {
@@ -97,7 +97,7 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
               textContent: toDisplayString(__props.reply.creatorName)
             }, null, 8, _hoisted_5$3), createElementVNode("span", {
               textContent: toDisplayString(' on ' + __props.reply.createdAt)
-            }, null, 8, _hoisted_6$3)])])]);
+            }, null, 8, _hoisted_6$2)])])]);
           };
         }
       });
@@ -136,10 +136,10 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
       var _hoisted_3$4 = ["textContent"];
       var _hoisted_4$4 = ["textContent"];
       var _hoisted_5$2 = ["textContent"];
-      var _hoisted_6$2 = {
+      var _hoisted_6$1 = {
         class: "row"
       };
-      var _hoisted_7$2 = {
+      var _hoisted_7$1 = {
         class: "col-md-12 d-flex mb-2 p-0 mt-2"
       };
       var _hoisted_8$1 = createElementVNode("div", {
@@ -210,7 +210,7 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
                 key: reply.Id,
                 reply: reply
               }, null, 8, ["reply"]);
-            }), 128)), createElementVNode("div", _hoisted_6$2, [createElementVNode("div", _hoisted_7$2, [_hoisted_8$1, createElementVNode("div", _hoisted_9$1, [newReplyOpen.value ? (openBlock(), createBlock(unref(TextBox), {
+            }), 128)), createElementVNode("div", _hoisted_6$1, [createElementVNode("div", _hoisted_7$1, [_hoisted_8$1, createElementVNode("div", _hoisted_9$1, [newReplyOpen.value ? (openBlock(), createBlock(unref(TextBox), {
               key: 0,
               id: "tbNewReply",
               modelValue: newReply.value,
@@ -297,13 +297,15 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
         }
       };
       var _hoisted_4$2 = {
-        class: "copy-link-area btn-group"
+        class: "btn-group"
       };
       var _hoisted_5$1 = {
-        class: "btn"
+        class: "btn",
+        style: {
+          borderRadius: '6px',
+          backgroundColor: 'lightgray'
+        }
       };
-      var _hoisted_6$1 = ["id"];
-      var _hoisted_7$1 = ["id"];
       var script$3 = defineComponent({
         name: 'basicColumnValue.partial',
         props: {
@@ -313,19 +315,10 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
           }
         },
         setup(__props) {
+          var props = __props;
+          var columnText = ref(props.columnValue.text !== "" ? props.columnValue.text : "Unknown");
           return (_ctx, _cache) => {
-            var _props$columnValue$t;
-            return openBlock(), createElementBlock("div", null, [createElementVNode("div", _hoisted_1$3, [createElementVNode("p", _hoisted_2$3, toDisplayString(__props.columnValue.column.title), 1), createElementVNode("div", _hoisted_3$2, [createElementVNode("div", _hoisted_4$2, [createElementVNode("div", _hoisted_5$1, [createElementVNode("span", null, toDisplayString((_props$columnValue$t = __props.columnValue.text) !== null && _props$columnValue$t !== void 0 ? _props$columnValue$t : "Unknown"), 1)]), createElementVNode("button", {
-              id: __props.columnValue.column.title,
-              type: "button",
-              class: "btn btn-primary btn-copy js-tooltip js-copy",
-              "data-toggle": "tooltip",
-              "data-placement": "bottom",
-              title: "Copy"
-            }, [createElementVNode("i", {
-              id: __props.columnValue.column.title + ' icon',
-              class: "far fa-clone"
-            }, null, 8, _hoisted_7$1)], 8, _hoisted_6$1)])])])]);
+            return openBlock(), createElementBlock("div", null, [createElementVNode("div", _hoisted_1$3, [createElementVNode("p", _hoisted_2$3, toDisplayString(__props.columnValue.column.title), 1), createElementVNode("div", _hoisted_3$2, [createElementVNode("div", _hoisted_4$2, [createElementVNode("div", _hoisted_5$1, [createElementVNode("span", null, toDisplayString(columnText.value), 1)])])])])]);
           };
         }
       });
@@ -415,7 +408,7 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
         class: "panel panel-block"
       };
       var _hoisted_2 = {
-        class: "panel-heading bcc-monday-panel-heading row"
+        class: "panel-heading"
       };
       var _hoisted_3 = {
         class: "col-xs-6 p-0"
@@ -426,7 +419,7 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
       var _hoisted_5 = ["textContent"];
       var _hoisted_6 = ["textContent"];
       var _hoisted_7 = {
-        class: "col-xs-6 text-right p-0"
+        class: "header-actions col-xs-6 text-right p-0"
       };
       var _hoisted_8 = {
         class: "panel-body",
@@ -471,6 +464,7 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
           var fileUploadValue = ref();
           var approveVisible = ref(config.showApprove);
           var closeVisible = ref(config.showClose);
+          var statusColumnValue = ref(item.columnValues[config.statusIndex]);
           var getItemDetailArgs = () => {
             return {
               mondayItemId: item.id,
@@ -479,6 +473,7 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
           };
           provide("getItemDetailArgs", getItemDetailArgs);
           provide("itemConfig", item);
+          config.item;
           var toggleVisibility = () => {
             newUpdateOpen.value = !newUpdateOpen.value;
             newUpdate.value = "";
@@ -540,6 +535,7 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
           }
           onConfigurationValuesChanged(reloadBlock);
           return (_ctx, _cache) => {
+            var _statusColumnValue$va;
             return openBlock(), createElementBlock("div", _hoisted_1, [createElementVNode("div", _hoisted_2, [createElementVNode("div", _hoisted_3, [createElementVNode("h1", _hoisted_4, [createElementVNode("div", {
               textContent: toDisplayString(unref(item).name)
             }, null, 8, _hoisted_5), createElementVNode("div", null, [createElementVNode("span", {
@@ -560,9 +556,19 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
               class: "btn btn-secondary",
               onClick: _cache[1] || (_cache[1] = $event => changeColumnValue('Close')),
               textContent: 'Close Request'
-            })) : createCommentVNode("v-if", true)])]), createElementVNode("div", _hoisted_8, [createElementVNode("div", _hoisted_9, [createElementVNode("div", _hoisted_10, [(openBlock(true), createElementBlock(Fragment, null, renderList(unref(item).columnValues, columnValue => {
+            })) : createCommentVNode("v-if", true)])]), createElementVNode("div", {
+              class: "w-100",
+              style: normalizeStyle({
+                'background-color': (_statusColumnValue$va = statusColumnValue.value.labelStyle) === null || _statusColumnValue$va === void 0 ? void 0 : _statusColumnValue$va.color,
+                textAlign: 'center',
+                color: '#ffffff',
+                padding: '11px 22px'
+              })
+            }, toDisplayString(statusColumnValue.value.text), 5), createElementVNode("div", _hoisted_8, [createElementVNode("div", _hoisted_9, [createElementVNode("div", _hoisted_10, [(openBlock(true), createElementBlock(Fragment, null, renderList(unref(item).columnValues, (columnValue, index) => {
               return openBlock(), createElementBlock(Fragment, {
                 key: columnValue.ColumnId
+              }, [index !== unref(config).statusIndex ? (openBlock(), createElementBlock(Fragment, {
+                key: 0
               }, [columnValue.type == 'file' ? (openBlock(), createBlock(unref(script$4), {
                 key: 0,
                 columnValue: columnValue
@@ -575,7 +581,7 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
               }, null, 8, ["columnValue"])) : (openBlock(), createBlock(unref(script$3), {
                 key: 3,
                 columnValue: columnValue
-              }, null, 8, ["columnValue"]))], 64);
+              }, null, 8, ["columnValue"]))], 64)) : createCommentVNode("v-if", true)], 64);
             }), 128))])]), createElementVNode("div", _hoisted_11, [!newUpdateOpen.value ? (openBlock(), createBlock(unref(RockButton), {
               key: 0,
               id: "bbtnNewUpdateOpen",
@@ -616,6 +622,34 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
           };
         }
       }));
+
+      function styleInject(css, ref) {
+        if (ref === void 0) ref = {};
+        var insertAt = ref.insertAt;
+        if (!css || typeof document === 'undefined') {
+          return;
+        }
+        var head = document.head || document.getElementsByTagName('head')[0];
+        var style = document.createElement('style');
+        style.type = 'text/css';
+        if (insertAt === 'top') {
+          if (head.firstChild) {
+            head.insertBefore(style, head.firstChild);
+          } else {
+            head.appendChild(style);
+          }
+        } else {
+          head.appendChild(style);
+        }
+        if (style.styleSheet) {
+          style.styleSheet.cssText = css;
+        } else {
+          style.appendChild(document.createTextNode(css));
+        }
+      }
+
+      var css_248z = ".copy-link-area{background-color:#d3d3d3;color:inherit;cursor:default!important;user-select:all!important}.iconBounce{animation:bounce 1.5s;animation-iteration-count:2;color:#fff}@keyframes bounce{0%,25%,50%,75%,to{transform:translateY(0)}15%{transform:translateY(3px)}40%{transform:translateY(-9px)}60%{transform:translateY(-5px)}}";
+      styleInject(css_248z);
 
       script.__file = "src/mondayItemDetail.obs";
 

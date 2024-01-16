@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 namespace com.baysideonline.BccMonday.Utilities.Api.Interfaces
 {
     [JsonConverter(typeof(ColumnValueConverter))]
-    public abstract class AbstractColumnValue
+    public class AbstractColumnValue
     {
         /// <summary>
         /// the column that this value belongs to.
@@ -37,6 +37,10 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Interfaces
         [JsonProperty("column")]//, ItemConverterType = typeof(ConcreteConverter<IColumn, Column>))]
         public Column Column { get; set; }
 
-        public abstract Control CreateControl(Page page);
+        public virtual Control CreateControl(Page page)
+        {
+            var root = new LiteralControl();
+            return root;
+        }
     }
 }

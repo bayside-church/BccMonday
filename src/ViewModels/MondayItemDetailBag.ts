@@ -69,7 +69,6 @@ export type BasicColumnValue = {
 export type Column = {
     id: string;
     title: string;
-    description: string;
 }
 
 export type FileColumnValue = BasicColumnValue & {
