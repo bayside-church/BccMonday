@@ -358,6 +358,9 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                         color
                         buttonLabel: label
                       }
+                      ... on MirrorValue {
+                        display_value
+                      }
                       ... on BoardRelationValue {
                         value
                         display_value
@@ -488,6 +491,9 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                             id
                             title
                             settings_str
+                        }
+                        ... on MirrorValue {
+                            display_value
                         }
                         ... on StatusValue {
                         id
