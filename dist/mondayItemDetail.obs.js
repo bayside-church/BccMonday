@@ -1,6 +1,6 @@
-System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButton', '@Obsidian/Controls/textBox', '@Obsidian/Controls/fileUploader'], (function (exports) {
+System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButton', '@Obsidian/Controls/textBox'], (function (exports) {
   'use strict';
-  var createElementVNode, defineComponent, openBlock, createElementBlock, toDisplayString, Fragment, createTextVNode, inject, ref, renderList, createBlock, unref, createCommentVNode, withCtx, normalizeStyle, provide, createVNode, useInvokeBlockAction, useConfigurationValues, useReloadBlock, onConfigurationValuesChanged, RockButton, TextBox, FileUploader;
+  var createElementVNode, defineComponent, openBlock, createElementBlock, toDisplayString, Fragment, createTextVNode, inject, ref, renderList, createBlock, unref, createCommentVNode, withCtx, normalizeStyle, provide, createVNode, useInvokeBlockAction, useConfigurationValues, useReloadBlock, onConfigurationValuesChanged, RockButton, TextBox;
   return {
     setters: [function (module) {
       createElementVNode = module.createElementVNode;
@@ -29,8 +29,6 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
       RockButton = module["default"];
     }, function (module) {
       TextBox = module["default"];
-    }, function (module) {
-      FileUploader = module["default"];
     }],
     execute: (function () {
 
@@ -165,8 +163,6 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
           var props = __props;
           var invokeBlockAction = useInvokeBlockAction();
           var getItemDetailArgs = inject("getItemDetailArgs");
-          inject("itemConfig");
-          ref(false);
           var newReply = ref("");
           var newReplyOpen = ref(false);
           function toggleVisibility() {
@@ -179,14 +175,18 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
           function _saveReply() {
             _saveReply = _asyncToGenerator(function* () {
               var replyText = newReply.value;
-              var response = yield invokeBlockAction("SaveReply", {
+              var args = {
                 args: getItemDetailArgs(),
                 text: replyText,
                 updateId: props.update.id
-              });
+              };
+              var response = yield invokeBlockAction("SaveReply", args);
               if (response.data) {
                 var _props$update$replies;
                 var reply = response.data;
+                if (props.update.replies === null) {
+                  props.update.replies = [];
+                }
                 (_props$update$replies = props.update.replies) === null || _props$update$replies === void 0 || _props$update$replies.push(reply);
               }
               toggleVisibility();
@@ -450,14 +450,10 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
       var script = exports('default', defineComponent({
         name: 'mondayItemDetail',
         setup(__props) {
-          ref(false);
           var config = useConfigurationValues();
           var invokeBlockAction = useInvokeBlockAction();
           var reloadBlock = useReloadBlock();
           console.log("Config from block:\n ", config);
-          ref(false);
-          ref("");
-          ref("");
           var item = config.item;
           var newUpdate = ref("");
           var newUpdateOpen = ref(false);
@@ -472,8 +468,6 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
             };
           };
           provide("getItemDetailArgs", getItemDetailArgs);
-          provide("itemConfig", item);
-          config.item;
           var toggleVisibility = () => {
             newUpdateOpen.value = !newUpdateOpen.value;
             newUpdate.value = "";
@@ -490,9 +484,6 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
                 args: getItemDetailArgs(),
                 text: updateText
               };
-              if (fileUploadValue && fileUploadValue.value) {
-                blockActionArgs.fileUploaded = fileUploadValue.value.value;
-              }
               var response = yield invokeBlockAction("SaveUpdate", blockActionArgs);
               if (response.data) {
                 var update = response.data;
@@ -508,10 +499,11 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
           }
           function _changeColumnValue() {
             _changeColumnValue = _asyncToGenerator(function* (statusChange) {
-              var response = yield invokeBlockAction("ChangeColumnValue", {
+              var args = {
                 args: getItemDetailArgs(),
                 statusChange: statusChange
-              });
+              };
+              var response = yield invokeBlockAction("ChangeColumnValue", args);
               if (response.data) {
                 var _response$data = response.data,
                   color = _response$data.color,
@@ -607,13 +599,7 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
               onClick: toggleVisibility,
               class: "btn btn-secondary",
               textContent: 'Cancel'
-            })]), createElementVNode("div", null, [createVNode(unref(FileUploader), {
-              modelValue: fileUploadValue.value,
-              "onUpdate:modelValue": _cache[3] || (_cache[3] = $event => fileUploadValue.value = $event),
-              uploadAsTemporary: true,
-              uploadButtonText: "Upload",
-              showDeleteButton: true
-            }, null, 8, ["modelValue"])])])], 64)) : createCommentVNode("v-if", true)]), (openBlock(true), createElementBlock(Fragment, null, renderList(unref(item).updates, update => {
+            })]), createCommentVNode(" <div>\r\n                            <FileUploader v-model=\"fileUploadValue\" :uploadAsTemporary=\"true\" uploadButtonText=\"Upload\" :showDeleteButton=\"true\" />\r\n                        </div> ")])], 64)) : createCommentVNode("v-if", true)]), (openBlock(true), createElementBlock(Fragment, null, renderList(unref(item).updates, update => {
               return openBlock(), createBlock(unref(script$5), {
                 key: update.Id,
                 update: update

@@ -32,47 +32,54 @@
 </template>
 
 <script setup lang="ts">
-import { PropType, computed, inject, onMounted, ref } from "vue";
-import type { MondayUpdateBag, MondayItemDetailBag } from "../ViewModels/MondayItemDetailBag";
-import MondayReply from "./mondayReply.partial.obs";
-import MondayFile from "./mondayFile.partial.obs"
+import { PropType, inject, ref } from "vue";
 import { useInvokeBlockAction } from "@Obsidian/Utility/block";
-import { MondayItemDetailArgs } from "src/ViewModels/MondayItemDetailArgs";
 import TextBox from "@Obsidian/Controls/textBox";
 import RockButton from "@Obsidian/Controls/rockButton";
+import MondayReply from "./mondayReply.partial.obs";
+import MondayFile from "./mondayFile.partial.obs";
+import { MondayUpdateBag } from "../ViewModels/MondayItemDetailBag";
+import { MondayItemDetailArgs } from "src/ViewModels/MondayItemDetailArgs";
 
 const invokeBlockAction = useInvokeBlockAction();
 const getItemDetailArgs = inject("getItemDetailArgs") as () => MondayItemDetailArgs;
-const item = inject("itemConfig") as MondayItemDetailBag;
+const newReply = ref("");
+const newReplyOpen = ref(false);
 
-const notFound = ref(false);
 const props = defineProps({
     update: {
         type: Object as PropType<MondayUpdateBag>,
         required: true
     }
-})
+});
 
-const newReply = ref("");
-const newReplyOpen = ref(false);
+type SaveReplyArgs = {
+    args: MondayItemDetailArgs;
+    text: string;
+    updateId: string;
+};
 
 function toggleVisibility(): void {
     newReplyOpen.value = !newReplyOpen.value;
     newReply.value = "";
 }
 
-
 async function saveReply(): Promise<void> {
-    const errorMessage = "";
     const replyText = newReply.value;
-    const response = await invokeBlockAction<MondayUpdateBag>("SaveReply", {
+
+    const args: SaveReplyArgs = {
         args: getItemDetailArgs(),
         text: replyText,
         updateId: props.update.id
-    });
+    };
+
+    const response = await invokeBlockAction<MondayUpdateBag>("SaveReply", args);
 
     if (response.data) {
         const reply = response.data;
+        if (props.update.replies === null) {
+            props.update.replies = [];
+        }
         props.update.replies?.push(reply);
     }
 

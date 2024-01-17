@@ -12,10 +12,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, inject, PropType } from "vue";
+import { PropType } from "vue";
 import type { MondayUpdateBag } from "../ViewModels/MondayItemDetailBag";
-import TextBox from "@Obsidian/Controls/textBox";
-import RockButton from "@Obsidian/Controls/rockButton";
 
 const props = defineProps({
     reply: {

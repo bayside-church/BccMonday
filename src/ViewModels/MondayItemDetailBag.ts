@@ -22,7 +22,7 @@ export type MondayBoardBag = {
 }
 
 export type MondayUpdateBag = {
-    id: number | string;
+    id: string;
     createdAt: string;
     creatorName: string;
     textBody: string;

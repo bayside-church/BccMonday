@@ -39,9 +39,9 @@
                             <RockButton id="bbtnNewUpdateSave" @click="saveUpdate" class="btn btn-primary" v-text="'Save'"/>
                             <RockButton id="bbtnNewUpdateCancel" @click="toggleVisibility" class="btn btn-secondary" v-text="'Cancel'"/>
                         </div>
-                        <div>
+                        <!-- <div>
                             <FileUploader v-model="fileUploadValue" :uploadAsTemporary="true" uploadButtonText="Upload" :showDeleteButton="true" />
-                        </div>
+                        </div> -->
                     </div>
                 </template>
             </div>
@@ -83,11 +83,9 @@
 </style>
 
 <script setup lang="ts">
-import { computed, onMounted, provide, ref } from "vue";
+import { provide, ref } from "vue";
 import { onConfigurationValuesChanged, useConfigurationValues, useInvokeBlockAction, useReloadBlock } from "@Obsidian/Utility/block";
 import RockButton from "@Obsidian/Controls/rockButton";
-import { BtnType } from "@Obsidian/Enums/Controls/btnType";
-import { BtnSize } from "@Obsidian/Enums/Controls/btnSize";
 import Panel from "@Obsidian/Controls/panel";
 import TextBox from "@Obsidian/Controls/textBox";
 import FileUploader from "@Obsidian/Controls/fileUploader";
@@ -99,17 +97,12 @@ import StatusColumnValue from "./mondayItemDetail/statusColumnValue.partial.obs"
 import BoardRelationColumnValue from "./mondayItemDetail/boardRelationColumnValue.partial.obs";
 import { MondayItemDetailArgs } from "./ViewModels/MondayItemDetailArgs";
 
-const notFound = ref(false);
 const config = useConfigurationValues<MondayItemDetailBag>();
 const invokeBlockAction = useInvokeBlockAction();
 const reloadBlock = useReloadBlock();
 console.log("Config from block:\n ",config);
 
 //#region Values
-
-const isRunning = ref<boolean>(false);
-const runResult = ref<string>("");
-const errorMessage = ref<string>("");
 const item = config.item;
 const newUpdate = ref("");
 const newUpdateOpen = ref(false);
@@ -129,9 +122,6 @@ const getItemDetailArgs: () => MondayItemDetailArgs = () => {
 };
 
 provide("getItemDetailArgs", getItemDetailArgs);
-provide("itemConfig", item);
-
-const itme = config.item
 
 //#endregion
 
@@ -139,10 +129,6 @@ const toggleVisibility = () => {
   newUpdateOpen.value = !newUpdateOpen.value;
   newUpdate.value = "";
   fileUploadValue.value = undefined;
-};
-
-const hideOnClickOutside = () => {
-  newUpdateOpen.value = false;
 };
 
 //#region Events
@@ -154,7 +140,6 @@ type saveUpdateArgs = {
 }
 
 async function saveUpdate(): Promise<void> {
-    const errorMessage = "";
     const updateText = newUpdate.value;
     console.log(updateText);
 
@@ -163,10 +148,11 @@ async function saveUpdate(): Promise<void> {
         text: updateText,
     }
 
+    /*
     if (fileUploadValue && fileUploadValue.value) {
         blockActionArgs.fileUploaded = fileUploadValue.value.value;
     }
-
+    */
     const response = await invokeBlockAction<MondayUpdateBag>("SaveUpdate", blockActionArgs);
 
     if (response.data) {
@@ -178,12 +164,17 @@ async function saveUpdate(): Promise<void> {
     newUpdateOpen.value = !newUpdateOpen.value;
 }
 
+type changeColumnValueArgs = {
+    args: MondayItemDetailArgs;
+    statusChange: string;
+};
+
 async function changeColumnValue(statusChange: string): Promise<void> {
-    const errorMessage = "";
-    const response = await invokeBlockAction<{ statusText: string, color: string }>("ChangeColumnValue", {
+    const args: changeColumnValueArgs = {
         args: getItemDetailArgs(),
         statusChange: statusChange
-    });
+    };
+    const response = await invokeBlockAction<{ statusText: string, color: string }>("ChangeColumnValue", args);
 
     if (response.data) {
         const { color, statusText } = response.data;
