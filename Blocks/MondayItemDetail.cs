@@ -166,7 +166,12 @@ namespace com.baysideonline.BccMonday.Blocks
 
             var board = GetBoard(item.BoardId.Value);
             var statusIndex = item.ColumnValues.FindIndex(c => c.ColumnId == board.MondayStatusColumnId);
-            var status = item.ColumnValues[statusIndex].Text;
+
+            var status = "";
+            if (item.ColumnValues.Count > 0)
+            {
+                status = item.ColumnValues[statusIndex].Text;
+            }
 
 
 
