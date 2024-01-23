@@ -76,7 +76,6 @@ namespace com.baysideonline.BccMonday.Blocks
         {
             var bag = new MondayItemDetailBag();
             var item = GetItem();
-            //var board = GetBoard(long.Parse(PageParameter(PageParameterKey.BccMondayBoardId)));
             item.ColumnValues = GetDisplayColumnValues(item);
 
             var itemBag = CreateBag(item);

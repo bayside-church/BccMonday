@@ -1,9 +1,19 @@
 <template>
-    <div>
+  <div v-show="columnText.length > 20" class="box-details" ref="cardRef">
+    <div class="box-info">Information</div>
+    <div :class="{ 'box-text': true, 'truncate-card-information': true, expanded: isExpanded }" v-show="!isContentOverflowing || isExpanded">
+      <div v-if="isContentOverflowing" class="truncate-text-overlay"></div>
+      {{ columnText }}
+    </div>
+    <button v-show="isContentOverflowing" class="show-button" @click="toggleExpansion">
+      {{ isExpanded ? 'Show Less' : 'Show More...' }}
+    </button>
+  </div>
+  <div>
       <div class="mr-4">
         <p class="font-weight-bold">{{ columnValue.column.title }}</p>
         <div class="bcc-monday-column-empty" :style="{ 'min-width': '200px' }">
-          <div class=" btn-group">
+          <div class="">
             <div class="btn" :style="{ borderRadius: '6px', backgroundColor: 'lightgray' }">
               <span>{{ columnText }}</span>
             </div>
@@ -14,8 +24,8 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted, watch, PropType} from 'vue';
 import { ColumnValueBag } from "src/ViewModels/MondayItemDetailBag";
-import { ref, PropType } from "vue";
 
 const props = defineProps({
     columnValue: {
@@ -26,4 +36,72 @@ const props = defineProps({
 
 const columnText = ref(props.columnValue.text !== "" ? props.columnValue.text : "Unknown");
 
+// Props
+const cardRef = ref<HTMLDivElement | null>(null);
+
+// State
+const isExpanded = ref(false);
+const isContentOverflowing = ref(false);
+
+// Methods
+const toggleExpansion = (event: Event) => {
+  event.preventDefault();
+  isExpanded.value = !isExpanded.value;
+};
+
+const checkContentOverflow = () => {
+  isContentOverflowing.value = columnText.value.length > 40;
+  //const contentElement = cardRef.value?.querySelector('.truncate-card-information');
+  //isContentOverflowing.value = contentElement ? contentElement.scrollHeight > 150 : false;
+};
+
+// Lifecycle hooks
+onMounted(() => {
+  checkContentOverflow();
+});
+
+// Watch for changes in the 'text' prop
+watch(columnText, () => {
+  checkContentOverflow();
+});
+
 </script>
+
+
+<style>
+/* Truncate Card Information */
+
+.truncate-card-information {
+    max-height: 150px;
+    overflow: hidden;
+    position: relative;
+    transition: max-height 0.3s ease-in-out;
+}
+
+.truncate-card-information .truncate-text-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, transparent 0%, #383d47 100%);
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.truncate-card-information.expanded {
+    max-height: unset;
+}
+
+.truncate-card-information.expanded .truncate-text-overlay {
+    display: none;
+}
+
+.show-button {
+    display: block;
+    cursor: pointer;
+    background-color: transparent;
+    border: none;
+    color: #00aada;
+}
+</style>

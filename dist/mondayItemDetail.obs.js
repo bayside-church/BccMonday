@@ -1,6 +1,6 @@
 System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButton', '@Obsidian/Controls/textBox'], (function (exports) {
   'use strict';
-  var createElementVNode, defineComponent, openBlock, createElementBlock, toDisplayString, Fragment, createTextVNode, inject, ref, renderList, createBlock, unref, createCommentVNode, withCtx, normalizeStyle, provide, createVNode, useInvokeBlockAction, useConfigurationValues, useReloadBlock, onConfigurationValuesChanged, RockButton, TextBox;
+  var createElementVNode, defineComponent, openBlock, createElementBlock, toDisplayString, Fragment, createTextVNode, inject, ref, renderList, createBlock, unref, createCommentVNode, withCtx, onMounted, watch, withDirectives, normalizeClass, vShow, normalizeStyle, provide, createVNode, useInvokeBlockAction, useConfigurationValues, useReloadBlock, onConfigurationValuesChanged, RockButton, TextBox;
   return {
     setters: [function (module) {
       createElementVNode = module.createElementVNode;
@@ -17,6 +17,11 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
       unref = module.unref;
       createCommentVNode = module.createCommentVNode;
       withCtx = module.withCtx;
+      onMounted = module.onMounted;
+      watch = module.watch;
+      withDirectives = module.withDirectives;
+      normalizeClass = module.normalizeClass;
+      vShow = module.vShow;
       normalizeStyle = module.normalizeStyle;
       provide = module.provide;
       createVNode = module.createVNode;
@@ -74,7 +79,7 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
       };
       var _hoisted_4$5 = ["textContent"];
       var _hoisted_5$3 = ["textContent"];
-      var _hoisted_6$2 = ["textContent"];
+      var _hoisted_6$3 = ["textContent"];
       var script$7 = defineComponent({
         name: 'mondayReply.partial',
         props: {
@@ -95,7 +100,7 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
               textContent: toDisplayString(__props.reply.creatorName)
             }, null, 8, _hoisted_5$3), createElementVNode("span", {
               textContent: toDisplayString(' on ' + __props.reply.createdAt)
-            }, null, 8, _hoisted_6$2)])])]);
+            }, null, 8, _hoisted_6$3)])])]);
           };
         }
       });
@@ -134,10 +139,10 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
       var _hoisted_3$4 = ["textContent"];
       var _hoisted_4$4 = ["textContent"];
       var _hoisted_5$2 = ["textContent"];
-      var _hoisted_6$1 = {
+      var _hoisted_6$2 = {
         class: "row"
       };
-      var _hoisted_7$1 = {
+      var _hoisted_7$2 = {
         class: "col-md-12 d-flex mb-2 p-0 mt-2"
       };
       var _hoisted_8$1 = createElementVNode("div", {
@@ -210,7 +215,7 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
                 key: reply.Id,
                 reply: reply
               }, null, 8, ["reply"]);
-            }), 128)), createElementVNode("div", _hoisted_6$1, [createElementVNode("div", _hoisted_7$1, [_hoisted_8$1, createElementVNode("div", _hoisted_9$1, [newReplyOpen.value ? (openBlock(), createBlock(unref(TextBox), {
+            }), 128)), createElementVNode("div", _hoisted_6$2, [createElementVNode("div", _hoisted_7$2, [_hoisted_8$1, createElementVNode("div", _hoisted_9$1, [newReplyOpen.value ? (openBlock(), createBlock(unref(TextBox), {
               key: 0,
               id: "tbNewReply",
               modelValue: newReply.value,
@@ -284,22 +289,29 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
 
       script$4.__file = "src/mondayItemDetail/fileColumnValue.partial.obs";
 
-      var _hoisted_1$3 = {
-        class: "mr-4"
-      };
+      var _hoisted_1$3 = createElementVNode("div", {
+        class: "box-info"
+      }, "Information", -1);
       var _hoisted_2$3 = {
-        class: "font-weight-bold"
+        key: 0,
+        class: "truncate-text-overlay"
       };
       var _hoisted_3$2 = {
+        class: "mr-4"
+      };
+      var _hoisted_4$2 = {
+        class: "font-weight-bold"
+      };
+      var _hoisted_5$1 = {
         class: "bcc-monday-column-empty",
         style: {
           'min-width': '200px'
         }
       };
-      var _hoisted_4$2 = {
-        class: "btn-group"
+      var _hoisted_6$1 = {
+        class: ""
       };
-      var _hoisted_5$1 = {
+      var _hoisted_7$1 = {
         class: "btn",
         style: {
           borderRadius: '6px',
@@ -317,11 +329,68 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
         setup(__props) {
           var props = __props;
           var columnText = ref(props.columnValue.text !== "" ? props.columnValue.text : "Unknown");
+          var cardRef = ref(null);
+          var isExpanded = ref(false);
+          var isContentOverflowing = ref(false);
+          var toggleExpansion = event => {
+            event.preventDefault();
+            isExpanded.value = !isExpanded.value;
+          };
+          var checkContentOverflow = () => {
+            isContentOverflowing.value = columnText.value.length > 40;
+          };
+          onMounted(() => {
+            checkContentOverflow();
+          });
+          watch(columnText, () => {
+            checkContentOverflow();
+          });
           return (_ctx, _cache) => {
-            return openBlock(), createElementBlock("div", null, [createElementVNode("div", _hoisted_1$3, [createElementVNode("p", _hoisted_2$3, toDisplayString(__props.columnValue.column.title), 1), createElementVNode("div", _hoisted_3$2, [createElementVNode("div", _hoisted_4$2, [createElementVNode("div", _hoisted_5$1, [createElementVNode("span", null, toDisplayString(columnText.value), 1)])])])])]);
+            return openBlock(), createElementBlock(Fragment, null, [withDirectives(createElementVNode("div", {
+              class: "box-details",
+              ref_key: "cardRef",
+              ref: cardRef
+            }, [_hoisted_1$3, withDirectives(createElementVNode("div", {
+              class: normalizeClass({
+                'box-text': true,
+                'truncate-card-information': true,
+                expanded: isExpanded.value
+              })
+            }, [isContentOverflowing.value ? (openBlock(), createElementBlock("div", _hoisted_2$3)) : createCommentVNode("v-if", true), createTextVNode(" " + toDisplayString(columnText.value), 1)], 2), [[vShow, !isContentOverflowing.value || isExpanded.value]]), withDirectives(createElementVNode("button", {
+              class: "show-button",
+              onClick: toggleExpansion
+            }, toDisplayString(isExpanded.value ? 'Show Less' : 'Show More...'), 513), [[vShow, isContentOverflowing.value]])], 512), [[vShow, columnText.value.length > 20]]), createElementVNode("div", null, [createElementVNode("div", _hoisted_3$2, [createElementVNode("p", _hoisted_4$2, toDisplayString(__props.columnValue.column.title), 1), createElementVNode("div", _hoisted_5$1, [createElementVNode("div", _hoisted_6$1, [createElementVNode("div", _hoisted_7$1, [createElementVNode("span", null, toDisplayString(columnText.value), 1)])])])])])], 64);
           };
         }
       });
+
+      function styleInject(css, ref) {
+        if (ref === void 0) ref = {};
+        var insertAt = ref.insertAt;
+        if (!css || typeof document === 'undefined') {
+          return;
+        }
+        var head = document.head || document.getElementsByTagName('head')[0];
+        var style = document.createElement('style');
+        style.type = 'text/css';
+        if (insertAt === 'top') {
+          if (head.firstChild) {
+            head.insertBefore(style, head.firstChild);
+          } else {
+            head.appendChild(style);
+          }
+        } else {
+          head.appendChild(style);
+        }
+        if (style.styleSheet) {
+          style.styleSheet.cssText = css;
+        } else {
+          style.appendChild(document.createTextNode(css));
+        }
+      }
+
+      var css_248z$1 = ".truncate-card-information{max-height:150px;overflow:hidden;position:relative;transition:max-height .3s ease-in-out}.truncate-card-information .truncate-text-overlay{background:linear-gradient(180deg,transparent 0,#383d47);height:100%;left:0;opacity:.8;position:absolute;top:0;transition:opacity .3s ease;width:100%}.truncate-card-information.expanded{max-height:unset}.truncate-card-information.expanded .truncate-text-overlay{display:none}.show-button{background-color:transparent;border:none;color:#00aada;cursor:pointer;display:block}";
+      styleInject(css_248z$1);
 
       script$3.__file = "src/mondayItemDetail/basicColumnValue.partial.obs";
 
@@ -608,31 +677,6 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
           };
         }
       }));
-
-      function styleInject(css, ref) {
-        if (ref === void 0) ref = {};
-        var insertAt = ref.insertAt;
-        if (!css || typeof document === 'undefined') {
-          return;
-        }
-        var head = document.head || document.getElementsByTagName('head')[0];
-        var style = document.createElement('style');
-        style.type = 'text/css';
-        if (insertAt === 'top') {
-          if (head.firstChild) {
-            head.insertBefore(style, head.firstChild);
-          } else {
-            head.appendChild(style);
-          }
-        } else {
-          head.appendChild(style);
-        }
-        if (style.styleSheet) {
-          style.styleSheet.cssText = css;
-        } else {
-          style.appendChild(document.createTextNode(css));
-        }
-      }
 
       var css_248z = ".copy-link-area{background-color:#d3d3d3;color:inherit;cursor:default!important;user-select:all!important}.iconBounce{animation:bounce 1.5s;animation-iteration-count:2;color:#fff}@keyframes bounce{0%,25%,50%,75%,to{transform:translateY(0)}15%{transform:translateY(3px)}40%{transform:translateY(-9px)}60%{transform:translateY(-5px)}}";
       styleInject(css_248z);
