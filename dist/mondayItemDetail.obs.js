@@ -250,7 +250,7 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
       script$5.__file = "src/mondayItemDetail/mondayUpdate.partial.obs";
 
       var _hoisted_1$4 = {
-        class: "mr-3"
+        class: "mr-4"
       };
       var _hoisted_2$4 = {
         class: "font-weight-bold"
@@ -285,7 +285,7 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
       script$4.__file = "src/mondayItemDetail/fileColumnValue.partial.obs";
 
       var _hoisted_1$3 = {
-        class: "mr-3"
+        class: "mr-4"
       };
       var _hoisted_2$3 = {
         class: "font-weight-bold"
@@ -326,7 +326,7 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
       script$3.__file = "src/mondayItemDetail/basicColumnValue.partial.obs";
 
       var _hoisted_1$2 = {
-        class: "mr-3"
+        class: "mr-4"
       };
       var _hoisted_2$2 = {
         class: "font-weight-bold"
@@ -363,7 +363,7 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
       script$2.__file = "src/mondayItemDetail/statusColumnValue.partial.obs";
 
       var _hoisted_1$1 = {
-        class: "mr-3"
+        class: "mr-4"
       };
       var _hoisted_2$1 = {
         class: "font-weight-bold"

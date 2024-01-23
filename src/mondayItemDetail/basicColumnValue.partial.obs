@@ -1,6 +1,6 @@
 <template>
     <div>
-      <div class="mr-3">
+      <div class="mr-4">
         <p class="font-weight-bold">{{ columnValue.column.title }}</p>
         <div class="bcc-monday-column-empty" :style="{ 'min-width': '200px' }">
           <div class=" btn-group">
