@@ -1,4 +1,5 @@
 <template>
+  <!--
   <div v-show="columnText.length > 20" class="box-details" ref="cardRef">
     <div class="box-info">Information</div>
     <div :class="{ 'box-text': true, 'truncate-card-information': true, expanded: isExpanded }" v-show="!isContentOverflowing || isExpanded">
@@ -8,19 +9,17 @@
     <button v-show="isContentOverflowing" class="show-button" @click="toggleExpansion">
       {{ isExpanded ? 'Show Less' : 'Show More...' }}
     </button>
-  </div>
-  <div>
-      <div class="mr-4">
-        <p class="font-weight-bold">{{ columnValue.column.title }}</p>
-        <div class="bcc-monday-column-empty" :style="{ 'min-width': '200px' }">
-          <div class="">
-            <div class="btn" :style="{ borderRadius: '6px', backgroundColor: 'lightgray' }">
-              <span>{{ columnText }}</span>
-            </div>
-          </div>
+  </div>-->
+  <div class="mr-4">
+    <p class="font-weight-bold">{{ columnValue.column.title }}</p>
+    <div class="bcc-monday-column-empty" :style="{ 'min-width': '200px' }">
+      <div class="btn-group">
+        <div class="monday-btn" :style="{ borderRadius: '6px', backgroundColor: 'lightgray' }">
+          <span>{{ columnText }}</span>
         </div>
       </div>
     </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -104,4 +103,20 @@ watch(columnText, () => {
     border: none;
     color: #00aada;
 }
+
+.monday-btn {
+    display: inline-block;
+    margin-bottom: 0;
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    background-image: none;
+    border: 1px solid transparent;
+    padding: 6px 16px;
+    font-size: 16px;
+    line-height: 1.5;
+    border-radius: 6px;
+}
+
 </style>
