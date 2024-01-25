@@ -116,7 +116,7 @@ namespace com.baysideonline.BccMonday.Blocks
 
                 var displayColumns = columnService
                     .Queryable()
-                    .Where(c => c.BccMondayBoard.MondayBoardId == item.BoardId)
+                    .Where(c => c.BccMondayBoard.Id == board.Id)
                     .Select(c => c.MondayColumnId)
                     .ToList();
 
@@ -153,10 +153,27 @@ namespace com.baysideonline.BccMonday.Blocks
                 //var item = GetItem();
                 //mondayBoardId = item.Board.Id;
 
-                var board = boardService
+                var boards = boardService
                     .Queryable()
-                    .FirstOrDefault(b => b.MondayBoardId == mondayBoardId);
-                return board;
+                    .ToList();
+
+                foreach(var board in boards)
+                {
+                    if (board.MondayBoardId == mondayBoardId)
+                    {
+                        return board;
+                    }
+
+                    board.LoadAttributes();
+                    var closedBoardIdStr = board.GetAttributeValue("MondayClosedBoardId");
+
+                    if (closedBoardIdStr.IsNotNullOrWhiteSpace() && closedBoardIdStr.Equals(mondayBoardId.ToString()))
+                    {
+                        return board;
+                    }
+                }
+
+                return null;
             }
         }
 
@@ -261,6 +278,9 @@ namespace com.baysideonline.BccMonday.Blocks
                     return mondayColumnValueBag;
                 }).ToList()
             };
+
+            var foo = Newtonsoft.Json.JsonConvert.SerializeObject(itemBag.ColumnValues);
+
             return itemBag;
         }
 
@@ -421,6 +441,13 @@ namespace com.baysideonline.BccMonday.Blocks
             }
         }
 
+        #endregion
+
+        #region Internal Classes
+        private class LavaMondayColumn : Rock.Lava.LavaDataObject
+        {
+            public string ColumnId { get; set; }
+        }
         #endregion
     }
 }
