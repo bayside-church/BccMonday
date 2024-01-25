@@ -78,6 +78,121 @@ namespace com.baysideonline.BccMonday.Blocks
             var item = GetItem();
             item.ColumnValues = GetDisplayColumnValues(item);
 
+            var itemBag = CreateBag(item);
+
+            var board = GetBoard(item.BoardId.Value);
+            var statusColumn = board.MondayStatusColumnId;
+            var statusIndex = item.ColumnValues.FindIndex(c => c.ColumnId == board.MondayStatusColumnId);
+
+            var status = "";
+            if (item.ColumnValues.Count > 0)
+            {
+                status = item.ColumnValues[statusIndex].Text;
+            }
+
+            bag = new MondayItemDetailBag {
+                Item = itemBag,
+                Status = status,
+                StatusIndex = statusIndex,
+                ShowApprove = ShowStatusButton(board.MondayStatusApprovedValue, item, board) && board.ShowApprove,
+                ShowClose = ShowStatusButton(board.MondayStatusClosedValue, item, board),
+            };
+            return bag;
+        }
+
+        /// <summary>
+        /// Gets the Display Column Values from the database
+        /// </summary>
+        /// <param name="item">The Monday.com Item</param>
+        /// <returns>A list of Column Values that are allowed to be displayed.</returns>
+        public List<AbstractColumnValue> GetDisplayColumnValues(Item item)
+        {
+            using (var context = new RockContext())
+            {
+                var columnService = new BccMondayBoardDisplayColumnService(context);
+                //var boardService = new BccMondayBoardService(context);
+
+                var board = GetBoard(item.Board.Id);
+
+                var displayColumns = columnService
+                    .Queryable()
+                    .Where(c => c.BccMondayBoard.Id == board.Id)
+                    .Select(c => c.MondayColumnId)
+                    .ToList();
+
+                displayColumns.Add(board.MondayStatusColumnId);
+
+                var valuesToDisplay = item.ColumnValues
+                    .Where(c => displayColumns.Find(d => d.Equals(c.ColumnId)) != null)
+                    .ToList();
+
+                return valuesToDisplay;
+            }
+        }
+
+        /// <summary>
+        /// Gets the Item instance
+        /// </summary>
+        /// <remarks>Loads Item from API</remarks>
+        /// <returns>The item specified by the page parameter</returns>
+        public Item GetItem()
+        {
+            var mondayItemId = long.Parse(PageParameter(PageParameterKey.MondayItemId));
+
+            var api = new MondayApi();
+            var item = api.GetItem(mondayItemId);
+            item.Updates.RemoveAll(u => u.Creator.CreatorId.Equals("-4"));
+            return (Item)item;
+        }
+
+        public BccMondayBoard GetBoard(long mondayBoardId)
+        {
+            using (var context = new RockContext())
+            {
+                var boardService = new BccMondayBoardService(context);
+                //var item = GetItem();
+                //mondayBoardId = item.Board.Id;
+
+                var boards = boardService
+                    .Queryable()
+                    .ToList();
+
+                foreach(var board in boards)
+                {
+                    if (board.MondayBoardId == mondayBoardId)
+                    {
+                        return board;
+                    }
+
+                    board.LoadAttributes();
+                    var closedBoardIdStr = board.GetAttributeValue("MondayClosedBoardId");
+
+                    if (closedBoardIdStr.IsNotNullOrWhiteSpace() && closedBoardIdStr.Equals(mondayBoardId.ToString()))
+                    {
+                        return board;
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        protected bool ShowStatusButton(string statusValue, Item item, BccMondayBoard board)
+        {
+            if (statusValue.IsNullOrWhiteSpace()) return false;
+
+            var statusIndex = item.ColumnValues.FindIndex(c => c.ColumnId == board.MondayStatusColumnId);
+            if (statusIndex != -1)
+            {
+                var status = item.ColumnValues[statusIndex].Text;
+                return !status.Equals(statusValue);
+            }
+            return false;
+
+        }
+
+        public MondayItemBag CreateBag(Item item)
+        {
             var itemBag = new MondayItemBag
             {
                 Id = item.Id.ToString(),
@@ -122,6 +237,7 @@ namespace com.baysideonline.BccMonday.Blocks
                         Column = new MondayColumnBag
                         {
                             Id = c.Column.Id,
+                            Title = c.Column.Title,
                         }
                     };
 
@@ -163,87 +279,9 @@ namespace com.baysideonline.BccMonday.Blocks
                 }).ToList()
             };
 
-            var board = GetBoard(item.BoardId.Value);
-            var statusIndex = item.ColumnValues.FindIndex(c => c.ColumnId == board.MondayStatusColumnId);
-            var status = item.ColumnValues[statusIndex].Text;
+            var foo = Newtonsoft.Json.JsonConvert.SerializeObject(itemBag.ColumnValues);
 
-
-
-            bag = new MondayItemDetailBag {
-                Item = itemBag,
-                Status = status,
-                StatusIndex = statusIndex,
-                ShowApprove = ShowStatusButton(board.MondayStatusApprovedValue, item, board) && board.ShowApprove,
-                ShowClose = ShowStatusButton(board.MondayStatusClosedValue, item, board),
-            };
-            return bag;
-        }
-
-        /// <summary>
-        /// Gets the Display Column Values from the database
-        /// </summary>
-        /// <param name="item">The Monday.com Item</param>
-        /// <returns>A list of Column Values that are allowed to be displayed.</returns>
-        public List<AbstractColumnValue> GetDisplayColumnValues(Item item)
-        {
-            using (var context = new RockContext())
-            {
-                var columnService = new BccMondayBoardDisplayColumnService(context);
-                var displayColumns = columnService
-                    .Queryable()
-                    .Where(c => c.BccMondayBoard.MondayBoardId == item.BoardId)
-                    .ToList();
-
-                var valuesToDisplay = item.ColumnValues
-                    .Where(c => displayColumns.Find(d => d.MondayColumnId.Equals(c.ColumnId)) != null)
-                    .ToList();
-
-                return valuesToDisplay;
-            }
-        }
-
-        /// <summary>
-        /// Gets the Item instance
-        /// </summary>
-        /// <remarks>Loads Item from API</remarks>
-        /// <returns>The item specified by the page parameter</returns>
-        public Item GetItem()
-        {
-            var mondayItemId = long.Parse(PageParameter(PageParameterKey.MondayItemId));
-
-            var api = new MondayApi();
-            var item = api.GetItem(mondayItemId);
-            item.Updates.RemoveAll(u => u.Creator.CreatorId.Equals("-4"));
-            return (Item)item;
-        }
-
-        public BccMondayBoard GetBoard(long mondayBoardId)
-        {
-            using (var context = new RockContext())
-            {
-                var boardService = new BccMondayBoardService(context);
-                //var item = GetItem();
-                //mondayBoardId = item.Board.Id;
-
-                var board = boardService
-                    .Queryable()
-                    .FirstOrDefault(b => b.MondayBoardId == mondayBoardId);
-                return board;
-            }
-        }
-
-        protected bool ShowStatusButton(string statusValue, Item item, BccMondayBoard board)
-        {
-            if (statusValue.IsNullOrWhiteSpace()) return false;
-
-            var statusIndex = item.ColumnValues.FindIndex(c => c.ColumnId == board.MondayStatusColumnId);
-            if (statusIndex != -1)
-            {
-                var status = item.ColumnValues[statusIndex].Text;
-                return !status.Equals(statusValue);
-            }
-            return false;
-
+            return itemBag;
         }
 
         #endregion
@@ -403,6 +441,13 @@ namespace com.baysideonline.BccMonday.Blocks
             }
         }
 
+        #endregion
+
+        #region Internal Classes
+        private class LavaMondayColumn : Rock.Lava.LavaDataObject
+        {
+            public string ColumnId { get; set; }
+        }
         #endregion
     }
 }

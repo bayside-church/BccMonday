@@ -22,7 +22,7 @@ export type MondayBoardBag = {
 }
 
 export type MondayUpdateBag = {
-    id: number | string;
+    id: string;
     createdAt: string;
     creatorName: string;
     textBody: string;
@@ -69,7 +69,6 @@ export type BasicColumnValue = {
 export type Column = {
     id: string;
     title: string;
-    description: string;
 }
 
 export type FileColumnValue = BasicColumnValue & {

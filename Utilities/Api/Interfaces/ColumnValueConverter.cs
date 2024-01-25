@@ -31,12 +31,14 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Interfaces
             {
                 AbstractColumnValue columnValue = (AbstractColumnValue)Activator.CreateInstance(concreteType);
                 serializer.Populate(jsonObject.CreateReader(), columnValue);
+                columnValue.Text = jsonObject["text"]?.Value<string>() ?? jsonObject["display_value"]?.Value<string>();
                 return columnValue;
             }
             else
             {
                 var columnValue = new ColumnValue();
                 serializer.Populate(jsonObject.CreateReader(), columnValue);
+                columnValue.Text = jsonObject["text"]?.Value<string>() ?? jsonObject["display_value"]?.Value<string>();
                 return columnValue;
                 //throw new JsonSerializationException($"Unknown type: {type}");
             }

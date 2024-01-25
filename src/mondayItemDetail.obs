@@ -1,6 +1,6 @@
 <template>
     <div id="pnlItem" class="panel panel-block">
-        <div class="panel-heading bcc-monday-panel-heading row">
+        <div class="panel-heading">
             <div class="col-xs-6 p-0">
                 <h1 class="panel-title d-flex flex-column justify-content-center">
                     <div v-text="item.name"></div>
@@ -9,19 +9,24 @@
                     </div>
                 </h1>
             </div>
-            <div class="col-xs-6 text-right p-0">
+            <div class="header-actions col-xs-6 text-right p-0">
                 <RockButton v-if="approveVisible" id="bbtnApprove" class="btn btn-secondary" @click="changeColumnValue('Approve')" v-text="'Approve Request'"/>
                 <RockButton v-if="closeVisible" id="bbtnClose" class="btn btn-secondary" @click="changeColumnValue('Close')" v-text="'Close Request'"/>
             </div>
         </div>
+        <div class="w-100" :style="{ 'background-color': statusColumnValue.labelStyle?.color, textAlign: 'center', color: '#ffffff', padding:'11px 22px' }">
+            {{  statusColumnValue.text }}
+        </div>
         <div class="panel-body" style="width:100%">
             <div class="bcc-monday-column-group">
                 <div class="d-flex mb-3 flex-wrap" style="justify-content: space-between">
-                    <template v-for="columnValue in item.columnValues" :key="columnValue.ColumnId">
-                        <FileColumnValue v-if="columnValue.type == 'file'" :columnValue="columnValue"/>
-                        <StatusColumnValue v-else-if="columnValue.type == 'status'" :columnValue="columnValue"/>
-                        <BoardRelationColumnValue v-else-if="columnValue.type == 'board_relation'" :columnValue="columnValue" />
-                        <BasicColumnValue v-else :columnValue="columnValue" />
+                    <template v-for="(columnValue, index) in item.columnValues" :key="columnValue.ColumnId">
+                        <template v-if="index !== config.statusIndex">
+                            <FileColumnValue v-if="columnValue.type == 'file'" :columnValue="columnValue"/>
+                            <StatusColumnValue v-else-if="columnValue.type == 'status'" :columnValue="columnValue"/>
+                            <BoardRelationColumnValue v-else-if="columnValue.type == 'board_relation'" :columnValue="columnValue" />
+                            <BasicColumnValue v-else :columnValue="columnValue" />
+                        </template>
                     </template>
                 </div>
             </div>
@@ -34,9 +39,9 @@
                             <RockButton id="bbtnNewUpdateSave" @click="saveUpdate" class="btn btn-primary" v-text="'Save'"/>
                             <RockButton id="bbtnNewUpdateCancel" @click="toggleVisibility" class="btn btn-secondary" v-text="'Cancel'"/>
                         </div>
-                        <div>
+                        <!-- <div>
                             <FileUploader v-model="fileUploadValue" :uploadAsTemporary="true" uploadButtonText="Upload" :showDeleteButton="true" />
-                        </div>
+                        </div> -->
                     </div>
                 </template>
             </div>
@@ -47,13 +52,40 @@
         </div>
     </div>
 </template>
+<style>
+.copy-link-area {
+    background-color: lightgray;
+    color: inherit;
+    cursor: default !important;
+    user-select: all !important;
+}
+
+.iconBounce {
+    color: white;
+    animation: bounce 1.5s;
+    animation-iteration-count: 2;
+}
+
+@keyframes bounce {
+    0%, 25%, 50%, 75%, 100% {
+        transform: translateY(0);
+    }
+    15% {
+        transform: translateY(3px);
+    }
+    40% {
+        transform: translateY(-9px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+</style>
 
 <script setup lang="ts">
-import { computed, onMounted, provide, ref } from "vue";
+import { provide, ref } from "vue";
 import { onConfigurationValuesChanged, useConfigurationValues, useInvokeBlockAction, useReloadBlock } from "@Obsidian/Utility/block";
 import RockButton from "@Obsidian/Controls/rockButton";
-import { BtnType } from "@Obsidian/Enums/Controls/btnType";
-import { BtnSize } from "@Obsidian/Enums/Controls/btnSize";
 import Panel from "@Obsidian/Controls/panel";
 import TextBox from "@Obsidian/Controls/textBox";
 import FileUploader from "@Obsidian/Controls/fileUploader";
@@ -65,23 +97,19 @@ import StatusColumnValue from "./mondayItemDetail/statusColumnValue.partial.obs"
 import BoardRelationColumnValue from "./mondayItemDetail/boardRelationColumnValue.partial.obs";
 import { MondayItemDetailArgs } from "./ViewModels/MondayItemDetailArgs";
 
-const notFound = ref(false);
 const config = useConfigurationValues<MondayItemDetailBag>();
 const invokeBlockAction = useInvokeBlockAction();
 const reloadBlock = useReloadBlock();
 console.log("Config from block:\n ",config);
 
 //#region Values
-
-const isRunning = ref<boolean>(false);
-const runResult = ref<string>("");
-const errorMessage = ref<string>("");
 const item = config.item;
 const newUpdate = ref("");
 const newUpdateOpen = ref(false);
 const fileUploadValue = ref<{text: string, value: string}>();
 const approveVisible = ref(config.showApprove);
 const closeVisible = ref(config.showClose);
+const statusColumnValue = ref(item.columnValues[config.statusIndex]);
 
 //#endregion
 
@@ -94,7 +122,6 @@ const getItemDetailArgs: () => MondayItemDetailArgs = () => {
 };
 
 provide("getItemDetailArgs", getItemDetailArgs);
-provide("itemConfig", item);
 
 //#endregion
 
@@ -102,10 +129,6 @@ const toggleVisibility = () => {
   newUpdateOpen.value = !newUpdateOpen.value;
   newUpdate.value = "";
   fileUploadValue.value = undefined;
-};
-
-const hideOnClickOutside = () => {
-  newUpdateOpen.value = false;
 };
 
 //#region Events
@@ -117,7 +140,6 @@ type saveUpdateArgs = {
 }
 
 async function saveUpdate(): Promise<void> {
-    const errorMessage = "";
     const updateText = newUpdate.value;
     console.log(updateText);
 
@@ -126,10 +148,11 @@ async function saveUpdate(): Promise<void> {
         text: updateText,
     }
 
+    /*
     if (fileUploadValue && fileUploadValue.value) {
         blockActionArgs.fileUploaded = fileUploadValue.value.value;
     }
-
+    */
     const response = await invokeBlockAction<MondayUpdateBag>("SaveUpdate", blockActionArgs);
 
     if (response.data) {
@@ -141,12 +164,17 @@ async function saveUpdate(): Promise<void> {
     newUpdateOpen.value = !newUpdateOpen.value;
 }
 
+type changeColumnValueArgs = {
+    args: MondayItemDetailArgs;
+    statusChange: string;
+};
+
 async function changeColumnValue(statusChange: string): Promise<void> {
-    const errorMessage = "";
-    const response = await invokeBlockAction<{ statusText: string, color: string }>("ChangeColumnValue", {
+    const args: changeColumnValueArgs = {
         args: getItemDetailArgs(),
         statusChange: statusChange
-    });
+    };
+    const response = await invokeBlockAction<{ statusText: string, color: string }>("ChangeColumnValue", args);
 
     if (response.data) {
         const { color, statusText } = response.data;

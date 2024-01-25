@@ -1,6 +1,6 @@
 <template>
     <div>
-      <div class="mr-3">
+      <div class="mr-4">
         <p class="font-weight-bold">{{ columnValue.column.title }}</p>
         <div
           class="text-center"
@@ -23,8 +23,8 @@
 </template>
 
 <script setup lang="ts">
-import { ColumnValueBag, StatusColumnValue } from "src/ViewModels/MondayItemDetailBag";
-import { ref, PropType} from "vue";
+import { ColumnValueBag } from "src/ViewModels/MondayItemDetailBag";
+import { PropType} from "vue";
 
 const props = defineProps({
     columnValue: {

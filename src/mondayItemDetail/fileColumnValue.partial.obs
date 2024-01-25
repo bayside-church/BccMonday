@@ -1,5 +1,5 @@
 <template>
-    <div class="mr-3">
+    <div class="mr-4">
         <p class="font-weight-bold">{{ columnValue.column.title }}</p>
         <div style="min-width: 200px">
         <div v-for="file in columnValue.files" :key="file.assetId">
