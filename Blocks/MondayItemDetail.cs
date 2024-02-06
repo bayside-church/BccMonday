@@ -26,7 +26,7 @@ namespace com.baysideonline.BccMonday.Blocks
     [DisplayName("Monday Item Detail")]
     [Category("com_baysideonline > BccMonday")]
     [Description("Monday.com Item Detail block")]
-    //[SupportedSiteTypes(Rock.Model.SiteType.Web)]
+    [SupportedSiteTypes(Rock.Model.SiteType.Web)]
 
     #region Block Attributes
 
