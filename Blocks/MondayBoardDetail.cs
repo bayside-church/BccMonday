@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 namespace com.baysideonline.BccMonday.Blocks
 {
     /// <summary>
-    /// Displays the details of a particular group.
+    /// Displays the details of a particular BccMondayBoard.
     /// </summary>
-    /// <seealso cref="Rock.Blocks.RockObsidianBlockType" />
+    /// <seealso cref="Rock.Blocks.RockBlockType" />
 
     [DisplayName("Monday Board Detail")]
     [Category("com_baysideonline > BccMonday")]
@@ -27,9 +27,9 @@ namespace com.baysideonline.BccMonday.Blocks
 
     [Rock.SystemGuid.EntityTypeGuid("2fbadd22-d7c6-4ca9-918c-42016d9058c5")]
     [Rock.SystemGuid.BlockTypeGuid("f5002d5b-ed2c-4a25-af74-66ac25af2c73")]
-    public class MondayBoardDetail : RockObsidianBlockType
+    public class MondayBoardDetail : RockBlockType
     {
-        public override string BlockFileUrl => $"/Plugins/com_baysideonline/BccMonday/Blocks/MondayBoardDetail.obs";
+        public override string ObsidianFileUrl => $"/Plugins/com_baysideonline/BccMonday/Blocks/MondayBoardDetail.obs";
 
         #region Keys
 
