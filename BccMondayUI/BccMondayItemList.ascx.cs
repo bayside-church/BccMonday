@@ -187,15 +187,12 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
         protected void gfMondayList_ApplyFilterClick(object sender, EventArgs e)
         {
             int personId = ppMondayEmail.PersonId ?? CurrentPerson.Id;
-            //var preferences = GetBlockPersonPreferences();
+            var preferences = GetBlockPersonPreferences();
 
-            //preferences.SetValue(PreferenceKeys.Requestor, _canFilterEmail ? personId.ToString() : string.Empty);
-            //preferences.SetValue(PreferenceKeys.ShowAllItems, cbShowAll.Checked.ToString());
+            preferences.SetValue(PreferenceKeys.Requestor, _canFilterEmail ? personId.ToString() : string.Empty);
+            preferences.SetValue(PreferenceKeys.ShowAllItems, cbShowAll.Checked.ToString());
+            preferences.Save();
 
-            gfMondayList.SaveUserPreference("Requestor",
-                _canFilterEmail ? personId.ToString() : string.Empty);
-            gfMondayList.SaveUserPreference("Show All Items",
-                cbShowAll.Checked.ToString());
             if (string.Equals(ddlBoardOption.SelectedValue, "Closed"))
             {
                 gMondayList.DataSource = Items;
@@ -204,9 +201,8 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
             }
             else
             {
-               // preferences.SetValue(PreferenceKeys.SelectedBoard, ddlBoardOption.SelectedValue);
-                gfMondayList.SaveUserPreference("Selected Board",
-                    ddlBoardOption.SelectedValue);
+                preferences.SetValue(PreferenceKeys.SelectedBoard, ddlBoardOption.SelectedValue);
+                preferences.Save();
                 BindGrid();
             }
         }
@@ -255,7 +251,7 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
         // handles the gfMondayList_ClearFilterClick
         protected void gfMondayList_ClearFilterClick(object sender, EventArgs e)
         {
-            gfMondayList.DeleteUserPreferences();
+            gfMondayList.DeleteFilterPreferences();
             BindGrid();
         }
 
@@ -277,15 +273,13 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
         /// <remarks> Applies the selected filter options to the item list </remarks>
         protected void SetFilter()
         {
-            var requestorId = gfMondayList
-                .GetUserPreference("Requestor")
-                .AsIntegerOrNull();
+            var preferences = GetBlockPersonPreferences();
+            var requestorId = preferences.GetValue(PreferenceKeys.Requestor).AsIntegerOrNull();
 
             if (!(_canFilterEmail && requestorId.HasValue))
             {
                 requestorId = CurrentPersonId;
-                gfMondayList.SaveUserPreference("Requestor",
-                    requestorId?.ToString());
+                preferences.SetValue(PreferenceKeys.Requestor, requestorId?.ToString());
             }
 
             if (requestorId.HasValue && requestorId.Value != 0)
@@ -297,8 +291,8 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
                 }
             }
 
-            var boardPreference = gfMondayList.GetUserPreference("Selected Board");
-            var showAllPreference = gfMondayList.GetUserPreference("Show All Items");
+            var boardPreference = preferences.GetValue(PreferenceKeys.SelectedBoard);
+            var showAllPreference = preferences.GetValue(PreferenceKeys.ShowAllItems);
 
             cbShowAll.Checked = !string.IsNullOrWhiteSpace(showAllPreference) && bool.Parse(showAllPreference);
 
@@ -523,8 +517,9 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
         protected void mdDialog_SaveClick(object sender, EventArgs e)
         {
             mdDialog.Hide();
-            gfMondayList.SaveUserPreference("Selected Board",
-                ddlBoardOption.SelectedValue);
+            var preferences = GetBlockPersonPreferences();
+            preferences.SetValue(PreferenceKeys.SelectedBoard, ddlBoardOption.SelectedValue);
+            preferences.Save();
             SetFilter();
             BindGrid();
         }
