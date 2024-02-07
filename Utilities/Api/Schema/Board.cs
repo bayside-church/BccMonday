@@ -46,13 +46,6 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Schema
         [JsonProperty("workspace", NullValueHandling = NullValueHandling.Ignore)]
         [JsonConverter(typeof(ConcreteConverter<IWorkspace, Workspace>))]
         public IWorkspace Workspace { get; set; }
-        /*
-        public IWorkspace Workspace
-        {
-            get => ConcreteWorkspace;
-            set => ConcreteWorkspace = (Workspace)value;
-        }
-        */
 
         /// <inheritdoc/>
         public IColumn GetColumn(string id)

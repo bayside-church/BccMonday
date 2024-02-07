@@ -142,7 +142,7 @@ namespace com.baysideonline.BccMonday.Blocks
             var api = new MondayApi();
             var item = api.GetItem(mondayItemId);
             item.Updates.RemoveAll(u => u.Creator.CreatorId.Equals("-4"));
-            return (Item)item;
+            return item;
         }
 
         public BccMondayBoard GetBoard(long mondayBoardId)

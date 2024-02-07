@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 
 namespace com.baysideonline.BccMonday.Utilities.Api.Schema
 {
@@ -13,6 +14,12 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Schema
         [JsonProperty("id")]
         public long Id { get; set; }
 
+        [JsonProperty("created_at", NullValueHandling = NullValueHandling.Ignore)]
+        public DateTime CreatedAt { get; set; }
+
+        [JsonProperty("file_extension", NullValueHandling = NullValueHandling.Ignore)]
+        public int FileExtension { get; set; }
+
         /// <summary>
         /// <inheritdoc/>
         /// </summary>
@@ -25,11 +32,20 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Schema
         [JsonProperty("name")]
         public string Name { get; set; }
 
+        [JsonProperty("original_geometry", NullValueHandling = NullValueHandling.Ignore)]
+        public string OriginalGeometry { get; set; }
+
         /// <summary>
         /// <inheritdoc/>
         /// </summary>
         [JsonProperty("public_url")]
         public string PublicUrl { get; set; }
+
+        [JsonProperty("uploaded_by", NullValueHandling = NullValueHandling.Ignore)]
+        public MondayUser Uploader { get; set; }
+
+        [JsonProperty("url", NullValueHandling = NullValueHandling.Ignore)]
+        public string Url { get; set; }
 
         /// <summary>
         /// <inheritdoc/>
