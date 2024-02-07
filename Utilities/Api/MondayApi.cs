@@ -1,4 +1,5 @@
 ﻿using com.baysideonline.BccMonday.Utilities.Api.Config;
+using com.baysideonline.BccMonday.Utilities.Api.Interfaces;
 using com.baysideonline.BccMonday.Utilities.Api.Responses;
 using com.baysideonline.BccMonday.Utilities.Api.Schema;
 using Newtonsoft.Json;
@@ -220,6 +221,157 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 return asset;
             }
         }
+
+        public Asset AddFileToColumn(long itemId, string columnId, BinaryFile file)
+        {
+            throw new NotImplementedException();
+        }
+
+        public MondayUser AddUserToBoard(long boardId, long userId, string kind)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Add user to a workspace.
+        /// </summary>
+        /// <param name="workspaceId"></param>
+        /// <param name="userId"></param>
+        /// <param name="kind"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public MondayUser AddUserToWorkspace(long workspaceId, long userId, string kind)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Archives a group in a specific board.
+        /// </summary>
+        /// <param name="boardId"></param>
+        /// <param name="groupId"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public IMondayGroup ArchiveGroup(long boardId, string groupId)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Archives a board.
+        /// </summary>
+        /// <param name="boardId"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public Board ArchiveBoard(long boardId)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Change a column's properties
+        /// </summary>
+        /// <param name="columnId"></param>
+        /// <param name="boardId"></param>
+        /// <param name="columnProperty"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public Column ChangeColumnMetadata(string columnId, long boardId, string columnProperty, string value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Item ChangeColumnValue(long itemId, string columnId, long boardId, string json)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Item ChangeMultipleColumnValues(long itemId, long boardId, string columnValues, bool createLabelsIfMissing)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Item ClearItemUpdates(long itemId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Board CreateBoard(string boardName, string description, string boardKind, long folderId, long workspaceId, long templateId,
+            List<string> boardOwnerIds, List<string> boardOwnerTeamIds, List<string> boardSubscriberIds, List<string> boardSubscriberTeamIds, bool empty)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Column CreateColumn(long boardId, string title, string description, string columnType, string defaults, string Id, string afterColumnId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IMondayGroup CreateGroup(long boardId, string groupName, string position, string relativeTo, string positionRelativeMethod)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Item CreateItem(string itemName, long boardId, string groupId, string columnValues, bool createLabelsIfMissing)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Item CreateSubitem(long parentItemID, string itemName, string columnValues, bool createLabelsIfMissing)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Workspace CreateWorkspace(string name, string kind, string description)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Board DeleteBoard(long boardId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Column DeleteColumn(long boardId, string columnId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IMondayGroup DeleteGroup(long boardId, string groupId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Item DeleteItem(long itemID) {  throw new NotImplementedException(); }
+
+        public Update DeleteUpdate(long updateID) { throw new NotImplementedException();}
+
+        public Workspace DeleteWorkspace(long workspaceID) { throw new NotImplementedException();}
+
+        public IMondayGroup DuplicateGroup(long boardId, string groupId, bool addToTop, string groupTitle)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Item DuplicateItem(long boardId, bool withUpdates, long itemId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Item MoveItemToBoard(long boardId, string groupId, long itemId, string columnsMapping, string subitemsColumnsMapping)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Item MoveItemToGroup() {  throw new NotImplementedException(); }
+
+        public string UpdateBoard() {  throw new NotImplementedException(); }
+
+        public string UpdateGroup() {  throw new NotImplementedException(); }
+
+        public Workspace UpdateWorkspace() {  throw new NotImplementedException(); }
+
         #endregion
 
         #region queries
