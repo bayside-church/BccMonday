@@ -248,33 +248,47 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <summary>
         /// Archives a group in a specific board.
         /// </summary>
-        /// <param name="boardId"></param>
-        /// <param name="groupId"></param>
+        /// <param name="boardId">The board's unique identifier</param>
+        /// <param name="groupId">The group's unique identifier</param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
         public IMondayGroup ArchiveGroup(long boardId, string groupId)
         {
+            string query = @"
+                mutation ($boardId: ID!, $groupId: String!) {
+                    archive_group(board_id: $boardId, group_id: $groupId) {
+                        id
+                    }
+                }";
+
             throw new NotImplementedException();
         }
 
         /// <summary>
         /// Archives a board.
         /// </summary>
-        /// <param name="boardId"></param>
+        /// <param name="boardId">The board's unique identifier</param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
         public Board ArchiveBoard(long boardId)
         {
+            string query = @"
+                mutation ($boardId: ID!) {
+                    archive_board(board_id: $boardId) {
+                        id
+                    }
+                }";
+
             throw new NotImplementedException();
         }
 
         /// <summary>
         /// Change a column's properties
         /// </summary>
-        /// <param name="columnId"></param>
-        /// <param name="boardId"></param>
-        /// <param name="columnProperty"></param>
-        /// <param name="value"></param>
+        /// <param name="columnId">The column's unique identifier</param>
+        /// <param name="boardId">The board's unique identifier</param>
+        /// <param name="columnProperty">The property name of the column to be changed (title / description)</param>
+        /// <param name="value">The new description of the column</param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
         public Column ChangeColumnMetadata(string columnId, long boardId, string columnProperty, string value)
@@ -282,18 +296,50 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             throw new NotImplementedException();
         }
 
-        public Item ChangeColumnValue(long itemId, string columnId, long boardId, string json)
+        /// <summary>
+        /// Change an item's column value
+        /// </summary>
+        /// <param name="itemId">The item's unique identifier</param>
+        /// <param name="columnId">The column's unique identifier</param>
+        /// <param name="boardId">The board's unique identifier</param>
+        /// <param name="json">The new value of the column</param>
+        /// <param name="createLabelsIfMissing">Create Status/Dropdown labels if they're missing. (Requires permission to change board structure)</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public Item ChangeColumnValue(long itemId, string columnId, long boardId, string json, bool createLabelsIfMissing)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Changes the column values of a specific item.
+        /// </summary>
+        /// <param name="itemId">The item's unique identifier</param>
+        /// <param name="boardId">The board's unique identifier</param>
+        /// <param name="columnValues">The column values updates</param>
+        /// <param name="createLabelsIfMissing">Create Status/Dropdown labels if they're missing. (Requires permission to change board structure)</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
         public Item ChangeMultipleColumnValues(long itemId, long boardId, string columnValues, bool createLabelsIfMissing)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Clear an item's updates
+        /// </summary>
+        /// <param name="itemId">The item's unique identifier</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
         public Item ClearItemUpdates(long itemId)
         {
+            string query = @"
+                mutation ($itemId: ID!) {
+                    clear_item_updates(item_id: $itemId) {
+                        id
+                    }
+                }";
+
             throw new NotImplementedException();
         }
 
@@ -303,74 +349,246 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Create a new column in board.
+        /// </summary>
+        /// <param name="boardId">The board's unique identifier</param>
+        /// <param name="title">The new column's title</param>
+        /// <param name="description">The new column's description</param>
+        /// <param name="columnType">The type of column to create</param>
+        /// <param name="defaults">The new column's defaults</param>
+        /// <param name="Id">The column's user-specified unique identifier</param>
+        /// <param name="afterColumnId">The column's unique identifier after which the new column will be inserted</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
         public Column CreateColumn(long boardId, string title, string description, string columnType, string defaults, string Id, string afterColumnId)
         {
             throw new NotImplementedException();
         }
 
-        public IMondayGroup CreateGroup(long boardId, string groupName, string position, string relativeTo, string positionRelativeMethod)
+        /// <summary>
+        /// Creates a new group in a specific board.
+        /// </summary>
+        /// <param name="boardId">The board's unique identifier</param>
+        /// <param name="groupName">The name of the new group</param>
+        /// <param name="relativeTo">The group to set the position next to</param>
+        /// <param name="positionRelativeMethod">The position relative method to another group (before_at / after_at)</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public IMondayGroup CreateGroup(long boardId, string groupName, string relativeTo, string positionRelativeMethod)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Creates a new item.
+        /// </summary>
+        /// <param name="itemName">The new item's name.</param>
+        /// <param name="boardId">The board's unique identifier</param>
+        /// <param name="groupId">The group's unique identifier</param>
+        /// <param name="columnValues">The column values of the new item</param>
+        /// <param name="createLabelsIfMissing">Create Status/Dropdown labels if they're missing. (Requires permission to change board structure)</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
         public Item CreateItem(string itemName, long boardId, string groupId, string columnValues, bool createLabelsIfMissing)
         {
             throw new NotImplementedException();
         }
 
-        public Item CreateSubitem(long parentItemID, string itemName, string columnValues, bool createLabelsIfMissing)
+        /// <summary>
+        /// Create subitem
+        /// </summary>
+        /// <param name="parentItemId">The parent item's unique identifier</param>
+        /// <param name="itemName">The new item's name</param>
+        /// <param name="columnValues">The column values of the new item.</param>
+        /// <param name="createLabelsIfMissing">Create Status/Dropdown labels if they're missing. (Requires permission to change board structure)</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public Item CreateSubitem(long parentItemId, string itemName, string columnValues, bool createLabelsIfMissing)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Create a new workspace
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="kind"></param>
+        /// <param name="description"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
         public Workspace CreateWorkspace(string name, string kind, string description)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Delete a board.
+        /// </summary>
+        /// <param name="boardId"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
         public Board DeleteBoard(long boardId)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Delete a column.
+        /// </summary>
+        /// <param name="boardId"></param>
+        /// <param name="columnId"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
         public Column DeleteColumn(long boardId, string columnId)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Delete a group in a specific board.
+        /// </summary>
+        /// <param name="boardId"></param>
+        /// <param name="groupId"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
         public IMondayGroup DeleteGroup(long boardId, string groupId)
         {
             throw new NotImplementedException();
         }
 
-        public Item DeleteItem(long itemID) {  throw new NotImplementedException(); }
+        /// <summary>
+        /// Delete an item.
+        /// </summary>
+        /// <param name="itemID">The item's unique identifier</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public Item DeleteItem(long itemID)
+        {
+            throw new NotImplementedException();
+        }
 
-        public Update DeleteUpdate(long updateID) { throw new NotImplementedException();}
+        /// <summary>
+        /// Delete an update.
+        /// </summary>
+        /// <param name="updateId">The update's unique identifier</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public Update DeleteUpdate(long updateId)
+        {
+            throw new NotImplementedException();
+        }
 
-        public Workspace DeleteWorkspace(long workspaceID) { throw new NotImplementedException();}
+        /// <summary>
+        /// Delete workspace.
+        /// </summary>
+        /// <param name="workspaceId">The workspace's unique identifier</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public Workspace DeleteWorkspace(long workspaceId)
+        {
+            throw new NotImplementedException();
+        }
 
+        /// <summary>
+        /// Duplicate a board.
+        /// </summary>
+        /// <param name="boardId">The board's unique identifier</param>
+        /// <param name="duplicateType">The duplication type.</param>
+        /// <param name="name">(Optional) The new board's name. If omitted then automatically generated.</param>
+        /// <param name="workspaceId">Optional destination workspace. Defaults to the original board workspace.</param>
+        /// <param name="folderId">Optional destination folder in destination workspace. Defaults to the original board folder.</param>
+        /// <param name="keepSubscribers">Duplicate the subscribers to the new board. Defaults to false.</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public Board DuplicateBoard(long boardId, string duplicateType, string name, string workspaceId, string folderId, bool keepSubscribers)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Delete a group.
+        /// </summary>
+        /// <param name="boardId">The board's unique identifier</param>
+        /// <param name="groupId">The group's unique identifier</param>
+        /// <param name="addToTop">Should the new group be added to the top.</param>
+        /// <param name="groupTitle">The group's title.</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
         public IMondayGroup DuplicateGroup(long boardId, string groupId, bool addToTop, string groupTitle)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Duplicate an item.
+        /// </summary>
+        /// <param name="boardId">The board's unique identifier</param>
+        /// <param name="withUpdates">Duplicate with the item's updates</param>
+        /// <param name="itemId">The item's unique identifier. *Required</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
         public Item DuplicateItem(long boardId, bool withUpdates, long itemId)
         {
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Move an item to a different board.
+        /// </summary>
+        /// <param name="boardId">The unique identifier of a target board.</param>
+        /// <param name="groupId">The unique identifier of a target group.</param>
+        /// <param name="itemId">The unique identifier of an item to move.</param>
+        /// <param name="columnsMapping">Mapping of colums between the original board and target board</param>
+        /// <param name="subitemsColumnsMapping">Mapping of subitme columns between the original board and target board</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
         public Item MoveItemToBoard(long boardId, string groupId, long itemId, string columnsMapping, string subitemsColumnsMapping)
         {
             throw new NotImplementedException();
         }
 
+        
         public Item MoveItemToGroup() {  throw new NotImplementedException(); }
 
-        public string UpdateBoard() {  throw new NotImplementedException(); }
+        /// <summary>
+        /// Update Board attribute
+        /// </summary>
+        /// <param name="boardId">The board's unique identifier</param>
+        /// <param name="boardAttribute">The board's attribute to update (name / description / communication)</param>
+        /// <param name="newValue">The new attribute value</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public string UpdateBoard(long boardId, string boardAttribute, string newValue)
+        {
+            throw new NotImplementedException();
+        }
 
-        public string UpdateGroup() {  throw new NotImplementedException(); }
+        /// <summary>
+        /// Update an existing group.
+        /// </summary>
+        /// <param name="boardId">The board's unique identifier</param>
+        /// <param name="groupId">The Group's unique identifier</param>
+        /// <param name="groupAttribute">The group's attribute to update (title / color / position / relative_position_afer / relative_position_before)</param>
+        /// <param name="newValue">The new attribute value</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public string UpdateGroup(long boardId, string groupId, string groupAttribute, string newValue)
+        {
+            throw new NotImplementedException();
+        }
 
-        public Workspace UpdateWorkspace() {  throw new NotImplementedException(); }
+        /// <summary>
+        /// Update an exisintg workspace.
+        /// </summary>
+        /// <param name="id">The workspace ID.</param>
+        /// <param name="attributes">The attributes of the workspace to update</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public Workspace UpdateWorkspace(long id, string attributes)
+        {
+            throw new NotImplementedException();
+        }
 
         #endregion
 
