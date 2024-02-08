@@ -45,7 +45,10 @@
     <Compile Include="Models\BccMondayBoardService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\Api\Interfaces\IColumnValue.cs" />
+    <Compile Include="Utilities\Api\Interfaces\IComplexity.cs" />
+    <Compile Include="Utilities\Api\Interfaces\IMondayGroup.cs" />
     <Compile Include="Utilities\Api\Interfaces\IItemsPage.cs" />
+    <Compile Include="Utilities\Api\Interfaces\IMondayTag.cs" />
     <Compile Include="Utilities\Api\Interfaces\IMondayUser.cs" />
     <Compile Include="Utilities\Api\Interfaces\IWorkspace.cs" />
     <Compile Include="Utilities\Api\Responses\AddFileToUpdateResponse.cs" />
