@@ -36,6 +36,6 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Interfaces
         /// <summary>
         /// The group's title.
         /// </summary>
-        string Title { get; set; };
+        string Title { get; set; }
     }
 }

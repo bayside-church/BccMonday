@@ -10,6 +10,7 @@ using Rock.Model;
 using Rock.Web.Cache;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 
@@ -245,6 +246,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             throw new NotImplementedException();
         }
 
+        #region Archive Entities
         /// <summary>
         /// Archives a group in a specific board.
         /// </summary>
@@ -281,7 +283,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
             throw new NotImplementedException();
         }
-
+        #endregion
         /// <summary>
         /// Change a column's properties
         /// </summary>
@@ -306,10 +308,10 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <param name="createLabelsIfMissing">Create Status/Dropdown labels if they're missing. (Requires permission to change board structure)</param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public Item ChangeColumnValue(long itemId, string columnId, long boardId, string json, bool createLabelsIfMissing)
-        {
-            throw new NotImplementedException();
-        }
+        //public Item ChangeColumnValue(long itemId, string columnId, long boardId, string json, bool createLabelsIfMissing)
+        //{
+        //    throw new NotImplementedException();
+        //}
 
         /// <summary>
         /// Changes the column values of a specific item.
@@ -342,7 +344,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
             throw new NotImplementedException();
         }
-
+        #region Create Entities
         public Board CreateBoard(string boardName, string description, string boardKind, long folderId, long workspaceId, long templateId,
             List<string> boardOwnerIds, List<string> boardOwnerTeamIds, List<string> boardSubscriberIds, List<string> boardSubscriberTeamIds, bool empty)
         {
@@ -357,12 +359,22 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <param name="description">The new column's description</param>
         /// <param name="columnType">The type of column to create</param>
         /// <param name="defaults">The new column's defaults</param>
-        /// <param name="Id">The column's user-specified unique identifier</param>
+        /// <param name="id">The column's user-specified unique identifier</param>
         /// <param name="afterColumnId">The column's unique identifier after which the new column will be inserted</param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public Column CreateColumn(long boardId, string title, string description, string columnType, string defaults, string Id, string afterColumnId)
+        public Column CreateColumn(long boardId, string title, string description, string columnType, string defaults, string id, string afterColumnId)
         {
+            string query = @"
+                mutation ($boardId: ID!, title: String!, $description: String,
+                        $columnType: ColumnType!, $defaults; JSON,
+                        $id: String, $afterColumnId: ID) {
+                    create_column(board_id: $boardId, title: $title,
+                        description: $description, column_type: $columnType,
+                        defaults: $defaults, id: $id, after_column_id: $afterColumnId) {
+                        id
+                    }
+                }";
             throw new NotImplementedException();
         }
 
@@ -377,6 +389,12 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public IMondayGroup CreateGroup(long boardId, string groupName, string relativeTo, string positionRelativeMethod)
         {
+            string query = @"
+                mutation ($boardId: ID!, $groupName: String!, $relativeTo: String, $positionRelativeMethod: PositionRelative) {
+                    create_group(board_id: $boardId, group_name: $groupName, $relative_to: $relativeTo, position_relative_method: $positionRelativeMethod) {
+                        id
+                    }
+                }";
             throw new NotImplementedException();
         }
 
@@ -392,6 +410,12 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public Item CreateItem(string itemName, long boardId, string groupId, string columnValues, bool createLabelsIfMissing)
         {
+            string query = @"
+                mutation ($itemName: String!, $board_id: ID!, $groupId: String, $columnValues: JSON, $createLabelsIfMissing: Boolean) {
+                    create_item(item_name: $itemName, board_id: $boardId, group_id: $groupId, $column_values: $columnValues, create_labels_if_missing: $createLabelsIfMissing) {
+                        id
+                    }
+                }";
             throw new NotImplementedException();
         }
 
@@ -406,6 +430,12 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public Item CreateSubitem(long parentItemId, string itemName, string columnValues, bool createLabelsIfMissing)
         {
+            string query = @"
+                mutation ($parentItemId: ID!, $itemName: String!, $columnValues: JSON, $createLabelsIfMissing: Boolean) {
+                    create_subitem(parent_item_id: $parentItemId, item_name: $itemName, $column_values: $columnValues, create_labels_if_missing: $createLabelsIfMissing) {
+                        id
+                    }
+                }";
             throw new NotImplementedException();
         }
 
@@ -419,9 +449,16 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public Workspace CreateWorkspace(string name, string kind, string description)
         {
+            string query = @"
+                mutation ($name: String!, $kind: WorkspaceKind!, $description: String) {
+                    create_workspace(name: $name, kind: $kind, description: $description) {
+                        id
+                    }
+                }";
             throw new NotImplementedException();
         }
-
+        #endregion
+        #region Delete Entities
         /// <summary>
         /// Delete a board.
         /// </summary>
@@ -430,6 +467,12 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public Board DeleteBoard(long boardId)
         {
+            string query = @"
+                mutation ($boardId: ID!) {
+                    delete_board(board_id: $boardId) {
+                        id
+                    }
+                }";
             throw new NotImplementedException();
         }
 
@@ -442,6 +485,12 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public Column DeleteColumn(long boardId, string columnId)
         {
+            string query = @"
+                mutation ($boardId: ID!, $columnId: String!) {
+                    delete_column(board_id: $boardId, column_id: $columnId) {
+                        id
+                    }
+                }";
             throw new NotImplementedException();
         }
 
@@ -454,6 +503,12 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public IMondayGroup DeleteGroup(long boardId, string groupId)
         {
+            string query = @"
+                mutation ($boardId: ID!, $groupId: String!) {
+                    delete_group(board_id: $boardId, group_id: $groupId) {
+                        id
+                    }
+                }";
             throw new NotImplementedException();
         }
 
@@ -465,6 +520,12 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public Item DeleteItem(long itemID)
         {
+            string query = @"
+                mutation ($itemId: ID) {
+                    delete_item(item_id: $itemId) {
+                        id
+                    }
+                }";
             throw new NotImplementedException();
         }
 
@@ -476,9 +537,16 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public Update DeleteUpdate(long updateId)
         {
+            string query = @"
+                mutation ($updateId: ID!) {
+                    delete_update(id: $updateId) {
+                        id
+                    }
+                }";
             throw new NotImplementedException();
         }
-
+        #endregion
+        #region DuplicatEntities
         /// <summary>
         /// Delete workspace.
         /// </summary>
@@ -487,6 +555,12 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public Workspace DeleteWorkspace(long workspaceId)
         {
+            string query = @"
+                mutation ($workspaceId: ID!) {
+                    delete_workspace(workspace_id: $workspaceId) {
+                        id
+                    }
+                }";
             throw new NotImplementedException();
         }
 
@@ -532,7 +606,8 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         {
             throw new NotImplementedException();
         }
-
+        #endregion
+        #region Move Entities
         /// <summary>
         /// Move an item to a different board.
         /// </summary>
@@ -550,7 +625,8 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
         
         public Item MoveItemToGroup() {  throw new NotImplementedException(); }
-
+        #endregion
+        #region Update Entities
         /// <summary>
         /// Update Board attribute
         /// </summary>
@@ -589,7 +665,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         {
             throw new NotImplementedException();
         }
-
+        #endregion
         #endregion
 
         #region queries
@@ -832,6 +908,50 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
             var item = items[0];
             return item;
+        }
+
+        public List<Item> GetItemsByBoardAndColumnValues(long boardId, ItemsPageByColumnValuesQuery columnValues)
+        {
+            if (!Initialize().IsOk()) return null;
+
+            List<Item> allItems = new List<Item>();
+
+            var initialQuery = @"
+                query($boardId: ID!, $columnValues: [ItemsPageByColumnValuesQuery!]) {
+                    items_page_by_column_values(limit: 500, board_id: $boardId, column_values: $columnValues) {
+                        cursor
+                        items {
+                            id
+                            name
+                            created_at
+                            column_values {
+                                id
+                                text
+                                type
+                                value
+                                column {
+                                    id
+                                    title
+                                    settings_str
+                                }
+                            }
+                        }
+                    }
+                }";
+
+            var variables = new Dictionary<string, object>()
+            {
+                { "boardId", boardId },
+                { "columnValues", columnValues }
+            };
+
+            var initialData = Query<GetItemsPageResponse>(initialQuery, variables);
+            var itemsPage = initialData.ItemsPage;
+            var items = itemsPage.Items.ConvertAll(i => (Item)i);
+            var cursor = itemsPage.Cursor;
+            allItems.AddRange(items);
+
+            throw new NotImplementedException();
         }
 
         public List<Item> GetItemsByBoard(long boardId, string emailMatchColumnId, string statusColumnId)
