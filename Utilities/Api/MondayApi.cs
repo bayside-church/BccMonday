@@ -5,6 +5,7 @@ using com.baysideonline.BccMonday.Utilities.Api.Schema;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
+using Rock.CheckIn;
 using Rock.Data;
 using Rock.Model;
 using Rock.Web.Cache;
@@ -910,15 +911,15 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             return item;
         }
 
-        public List<Item> GetItemsByBoardAndColumnValues(long boardId, ItemsPageByColumnValuesQuery columnValues)
+        public List<Item> GetItemsByBoardAndColumnValues(long boardId, List<ItemsPageByColumnValuesQuery> columnValues)
         {
             if (!Initialize().IsOk()) return null;
 
             List<Item> allItems = new List<Item>();
 
             var initialQuery = @"
-                query($boardId: ID!, $columnValues: [ItemsPageByColumnValuesQuery!]) {
-                    items_page_by_column_values(limit: 500, board_id: $boardId, column_values: $columnValues) {
+                query($boardId: ID!, $columnValue: String!, $columnId: String!) {
+                    items_page_by_column_values(limit: 500, board_id: $boardId, columns: [{ column_id:$columnId, column_values:[$columnValue] }]) {
                         cursor
                         items {
                             id
@@ -934,6 +935,20 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                                     title
                                     settings_str
                                 }
+                                ... on MirrorValue {
+                                    display_value
+                                }
+                                ... on StatusValue {
+                                    id
+                                    value
+                                    index
+                                    statusLabel: label
+                                    is_done
+                                    label_style {
+                                        color
+                                        border
+                                    }
+                                }
                             }
                         }
                     }
@@ -942,16 +957,20 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             var variables = new Dictionary<string, object>()
             {
                 { "boardId", boardId },
-                { "columnValues", columnValues }
+                { "columnValue", columnValues[0].ColumnValues[0] },
+                { "columnId", columnValues[0].ColumnId }
             };
 
-            var initialData = Query<GetItemsPageResponse>(initialQuery, variables);
+            var initialData = Query<GetItemsByPageResponse>(initialQuery, variables);
+            if (initialData == null) return allItems;
+            if (initialData.ItemsPage == null) return allItems;
             var itemsPage = initialData.ItemsPage;
+            if (itemsPage.Items == null) return allItems;
             var items = itemsPage.Items.ConvertAll(i => (Item)i);
-            var cursor = itemsPage.Cursor;
+            //var cursor = initialData.Cursor;
             allItems.AddRange(items);
 
-            throw new NotImplementedException();
+            return allItems;
         }
 
         public List<Item> GetItemsByBoard(long boardId, string emailMatchColumnId, string statusColumnId)
@@ -1009,6 +1028,8 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 { "statusColumnId", statusColumnId }
             };
             var initialQueryData = Query <GetBoardsResponse> (initialQuery, variables);
+            if (initialQueryData == null) return allItems;
+            if (initialQueryData.Boards == null) return allItems;
             var board = initialQueryData.Boards[0];
             var itemsPage = board.ItemsPage;
             string cursor = itemsPage.Cursor;
