@@ -7,17 +7,29 @@ using System.Threading.Tasks;
 
 namespace com.baysideonline.BccMonday.Utilities.Api.Interfaces
 {
+    /// <summary>
+    /// A set of parameters to filter, sort, and control the scope of the baords query.
+    /// Use this to customize the results based on specific criteria.
+    /// Please note that you can't use query_params and cursor in the same request.
+    /// We recommend using query_params for the cinitial request and
+    /// cursor for paginated requests
+    /// </summary>
     public interface IItemsQuery
     {
-        [JsonProperty("operator")]
-        public string Operator { get; set; }
+        /// <summary>
+        /// The conditions between query rules. The default is "and".
+        /// </summary>
+        string Operator { get; set; }
 
-        [JsonProperty("order_by")]
-        public string OrderBy { get; set; }
+        /// <summary>
+        /// The attributes to sort results by
+        /// </summary>
+        List<IItemsQueryOrderBy> OrderBy { get; set; }
 
-
-        [JsonProperty("rules")]
-        public string Rules { get; set; }
+        /// <summary>
+        /// The rules to filter your queries
+        /// </summary>
+        List<IItemsQueryRule> Rules { get; set; }
     }
 
     //enum "and", "or"
@@ -26,6 +38,9 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Interfaces
 
     }
 
+    /// <summary>
+    /// The rules to filter your queries
+    /// </summary>
     public interface IItemsQueryRule
     {
         /// <summary>
@@ -41,17 +56,32 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Interfaces
         /// <summary>
         /// The column value to filter by. This can be a string or index value depending on the column type.
         /// </summary>
-        ICompareValue CompareValue { get; set; }
+        string CompareValue { get; set; }
 
         /// <summary>
         /// The condition for value comparison. The default is any_of
         /// </summary>
-        IItemsQueryRuleOperator Operator { get; set; }
+        ItemsQueryRuleOperator Operator { get; set; }
     }
 
-    public interface IItemsQueryRuleOperator
+    public enum ItemsQueryRuleOperator
     {
-        string Value { get; set; }
+        any_of,
+        not_any_of,
+        is_empty,
+        is_not_empty,
+        greater_than,
+        greater_than_or_equals,
+        lower_than,
+        lower_than_or_equal,
+        between,
+        not_contains_text,
+        contains_text,
+        contains_terms,
+        starts_with,
+        ends_with,
+        within_the_next,
+        within_the_last
     }
 
     public interface IItemsQueryOrderBy
@@ -66,6 +96,12 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Interfaces
         /// <summary>
         /// The direction to sort items in. The default is asc
         /// </summary>
-        string Direction { get; set; }
+        ItemsOrderByDirection Direction { get; set; }
+    }
+
+    public enum ItemsOrderByDirection
+    {
+        asc,
+        desc
     }
 }

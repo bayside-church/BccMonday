@@ -48,6 +48,7 @@
     <Compile Include="Utilities\Api\Interfaces\IColumnValue.cs" />
     <Compile Include="Utilities\Api\Interfaces\IComplexity.cs" />
     <Compile Include="Utilities\Api\Interfaces\IItemsPageByColumnValuesQuery.cs" />
+    <Compile Include="Utilities\Api\Interfaces\IItemsQuery.cs" />
     <Compile Include="Utilities\Api\Interfaces\IMondayGroup.cs" />
     <Compile Include="Utilities\Api\Interfaces\IItemsPage.cs" />
     <Compile Include="Utilities\Api\Interfaces\IMondayTag.cs" />
@@ -86,6 +87,7 @@
     <Compile Include="Utilities\Api\Schema\Item.cs" />
     <Compile Include="Utilities\Api\Schema\ItemsPage.cs" />
     <Compile Include="Utilities\Api\Schema\ItemsPageByColumnValuesQuery.cs" />
+    <Compile Include="Utilities\Api\Schema\ItemsQuery.cs" />
     <Compile Include="Utilities\Api\Schema\MondayUser.cs" />
     <Compile Include="Utilities\Api\Schema\StatusColumnValue.cs" />
     <Compile Include="Utilities\Api\Schema\Update.cs" />
