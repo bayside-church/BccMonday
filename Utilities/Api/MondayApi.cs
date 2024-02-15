@@ -96,6 +96,49 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             if (!Initialize().IsOk())
                 return null;
 
+
+            
+            var query = parentUpdateId != null ?
+                new GraphQLQueryBuilder("mutation")
+                .AddVariable("$itemId", "ID")
+                .AddVariable("$body", "String!")
+                .AddVariable("$parentUpdateId", "ID")
+                .AddNestedField("create_update", q => q
+                    .AddField("id")
+                    .AddField("body")
+                    .AddField("text_body")
+                    .AddField("created_at")
+                    .AddField("creator_id")
+                    .AddNestedField("creator", q1 => q1
+                        .AddField("id")
+                        .AddField("name")
+                    )
+                , arguments: new Dictionary<string, object>
+                {
+                    { "item_id", "$itemId" },
+                    { "body", "$body" },
+                    { "parent_id", "$parentUpdateId" }
+                }).Build()
+             : new GraphQLQueryBuilder("mutation")
+                .AddVariable("$itemId", "ID")
+                .AddVariable("$body", "String!")
+                .AddNestedField("create_update", q => q
+                    .AddField("id")
+                    .AddField("body")
+                    .AddField("text_body")
+                    .AddField("created_at")
+                    .AddField("creator_id")
+                    .AddNestedField("creator", q1 => q1
+                        .AddField("id")
+                        .AddField("name")
+                    )
+                , arguments: new Dictionary<string, object>
+                {
+                    { "item_id", "$itemId" },
+                    { "body", "$body" },
+                }).Build();
+            
+            /*
             var query = parentUpdateId != null
                 ? @"mutation ($itemId: ID, $body: String!, $parentUpdateId: ID){
                         create_update (item_id: $itemId, body: $body, parent_id: $parentUpdateId) {
@@ -123,6 +166,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                             }
                         }
                     }";
+            */
 
             var variables = new Dictionary<string, object>()
             {
@@ -141,6 +185,33 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             if (!Initialize().IsOk())
                 return null;
 
+            var query = new GraphQLQueryBuilder("mutation")
+                .AddVariable("$boardId", "ID!")
+                .AddVariable("$columnId", "String!")
+                .AddVariable("$itemId", "ID")
+                .AddVariable("$newValue", "String")
+                .AddNestedField("change_simple_column_value", q => q
+                    .AddField("id")
+                    .AddNestedField("column_values", q1 => q1
+                        .AddField("id")
+                        .AddField("text")
+                        .AddField("type")
+                        .AddNestedField("... on StatusValue", q2 => q2
+                            .AddNestedField("label_style", q3 => q3
+                                .AddField("color")
+                            )
+                        )
+                    , arguments: new Dictionary<string, object>
+                    {
+                        { "ids", "[$columnId]" }
+                    })
+                , arguments: new Dictionary<string, object>
+                {
+                    { "board_id", "$boardId" },
+                    { "column_id", "$columnId" },
+                    { "item_id", "$itemId" }
+                }).Build();
+                /*
             string query = @"
                 mutation ($boardId: ID!, $columnId: String!, $itemId: ID, $newValue: String){
                     change_simple_column_value(
@@ -163,7 +234,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                             }
                         }
                     }";
-
+                */
             var variables = new Dictionary<string, object>()
             {
                 { "boardId", boardId },
@@ -200,6 +271,21 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             using (WebClient webClient = new WebClient())
             {
                 var bytes = webClient.DownloadData(filePath);
+
+                var query = new GraphQLQueryBuilder("mutation")
+                    .AddVariable("$file", "File!")
+                    .AddVariable("$updateId", "ID!")
+                    .AddNestedField("add_file_to_update", q => q
+                        .AddField("id")
+                        .AddField("file_size")
+                        .AddField("name")
+                        .AddField("public_url")
+                        .AddField("url_thumbnail")
+                    , arguments: new Dictionary<string, object>
+                    {
+                        { "update_id", "$updateId" }
+                    }).Build();
+                /*
                 string query = @"
                         mutation ($file: File!, $updateId: ID!) {
                             add_file_to_update(file: $file, update_id: $updateId) {
@@ -210,6 +296,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                                 url_thumbnail
                             }
                         }";
+                */
 
                 var variables = new Dictionary<string, object>
                 {
@@ -228,6 +315,36 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         {
             throw new NotImplementedException();
         }
+
+        /*
+        private Asset AddFileToEntity(Dictionary<string, object> variables, string query, BinaryFile file, Type responseType)
+        {
+            if (!Initialize().IsOk())
+            {
+                //Log error or throw exception
+                return null;
+            }
+
+            var publicApplicationRoot = GlobalAttributesCache.Get().GetValue("PublicApplicationRoot");
+            var filePath = new Uri(Path.Combine(publicApplicationRoot, $"GetFile.ashx={file.Id}"));
+            var fileName = file.FileName;
+            var fileSize = file.FileSize;
+            const long MaxBytes = 100_000_000;
+
+            if (!fileSize.HasValue || fileSize.Value > MaxBytes)
+            {
+                return null;
+            }
+
+            using (WebClient webClient = new WebClient())
+            {
+                var bytes = webClient.DownloadData(filePath);
+                variables.Add("file", bytes);
+
+                var data = FileQuery<>(query,)
+            }
+        }
+        */
 
         public MondayUser AddUserToBoard(long boardId, long userId, string kind)
         {
@@ -257,12 +374,16 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public IMondayGroup ArchiveGroup(long boardId, string groupId)
         {
-            string query = @"
-                mutation ($boardId: ID!, $groupId: String!) {
-                    archive_group(board_id: $boardId, group_id: $groupId) {
-                        id
-                    }
-                }";
+            var query = new GraphQLQueryBuilder("mutation")
+                .AddVariable("$boardId", "ID!")
+                .AddVariable("$groupId", "String!")
+                .AddNestedField("archive_group", q => q
+                    .AddField("id")
+                , arguments: new Dictionary<string, object>
+                {
+                    { "board_id", "$boardId"  },
+                    { "group_id", "$groupId" }
+                }).Build();
 
             throw new NotImplementedException();
         }
@@ -275,12 +396,14 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public Board ArchiveBoard(long boardId)
         {
-            string query = @"
-                mutation ($boardId: ID!) {
-                    archive_board(board_id: $boardId) {
-                        id
-                    }
-                }";
+            var query = new GraphQLQueryBuilder("mutation")
+                .AddVariable("$boardId", "ID!")
+                .AddNestedField("archive_board", q => q
+                    .AddField("id")
+                , arguments: new Dictionary<string, object>
+                {
+                    { "board_Id", "$boardId"  },
+                }).Build();
 
             throw new NotImplementedException();
         }
@@ -336,12 +459,14 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public Item ClearItemUpdates(long itemId)
         {
-            string query = @"
-                mutation ($itemId: ID!) {
-                    clear_item_updates(item_id: $itemId) {
-                        id
-                    }
-                }";
+            var query = new GraphQLQueryBuilder("mutation")
+                .AddVariable("$itemId", "ID!")
+                .AddNestedField("clear_item_updates", q => q
+                    .AddField("id")
+                , arguments: new Dictionary<string, object>
+                {
+                    { "item_Id", "$itemId"  },
+                }).Build();
 
             throw new NotImplementedException();
         }
@@ -366,16 +491,27 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public Column CreateColumn(long boardId, string title, string description, string columnType, string defaults, string id, string afterColumnId)
         {
-            string query = @"
-                mutation ($boardId: ID!, title: String!, $description: String,
-                        $columnType: ColumnType!, $defaults; JSON,
-                        $id: String, $afterColumnId: ID) {
-                    create_column(board_id: $boardId, title: $title,
-                        description: $description, column_type: $columnType,
-                        defaults: $defaults, id: $id, after_column_id: $afterColumnId) {
-                        id
-                    }
-                }";
+            var query = new GraphQLQueryBuilder("mutation")
+                .AddVariable("$boardId", "ID!")
+                .AddVariable("$title", "String!")
+                .AddVariable("$description", "String")
+                .AddVariable("$columnType", "ColumnType!")
+                .AddVariable("$defaults", "JSON")
+                .AddVariable("$id", "String")
+                .AddVariable("$afterColumnId", "ID")
+                .AddNestedField("create_column", q => q
+                    .AddField("id")
+                , arguments: new Dictionary<string, object>
+                {
+                    { "board_Id", "$boardId"  },
+                    { "title", "$title" },
+                    { "description", "$description" },
+                    { "column_type", "$columnType" },
+                    { "defaults", "$defaults" },
+                    { "id", "$id" },
+                    { "after_column_id", "$afterColumnId" }
+                }).Build();
+
             throw new NotImplementedException();
         }
 
@@ -390,12 +526,21 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public IMondayGroup CreateGroup(long boardId, string groupName, string relativeTo, string positionRelativeMethod)
         {
-            string query = @"
-                mutation ($boardId: ID!, $groupName: String!, $relativeTo: String, $positionRelativeMethod: PositionRelative) {
-                    create_group(board_id: $boardId, group_name: $groupName, $relative_to: $relativeTo, position_relative_method: $positionRelativeMethod) {
-                        id
-                    }
-                }";
+            var query = new GraphQLQueryBuilder("mutation")
+                .AddVariable("$boardId", "ID!")
+                .AddVariable("$groupName", "String!")
+                .AddVariable("$relativeTo", "String")
+                .AddVariable("$positionRelativeMethod", "PositionRelative")
+                .AddNestedField("create_group", q => q
+                    .AddField("id")
+                , arguments: new Dictionary<string, object>
+                {
+                    { "board_Id", "$boardId"  },
+                    { "group_name", "$groupName" },
+                    { "relative_to", "$relativeTo" },
+                    { "position_relative_method", "$positionRelativeMethod" },
+                }).Build();
+
             throw new NotImplementedException();
         }
 
@@ -411,12 +556,23 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public Item CreateItem(string itemName, long boardId, string groupId, string columnValues, bool createLabelsIfMissing)
         {
-            string query = @"
-                mutation ($itemName: String!, $board_id: ID!, $groupId: String, $columnValues: JSON, $createLabelsIfMissing: Boolean) {
-                    create_item(item_name: $itemName, board_id: $boardId, group_id: $groupId, $column_values: $columnValues, create_labels_if_missing: $createLabelsIfMissing) {
-                        id
-                    }
-                }";
+            var query = new GraphQLQueryBuilder("mutation")
+                .AddVariable("$itemName", "String!")
+                .AddVariable("$boardId", "ID!")
+                .AddVariable("$groupId", "String")
+                .AddVariable("$columnValues", "JSON")
+                .AddVariable("$createLabelsIfMissing", "Boolean")
+                .AddNestedField("create_item", q => q
+                    .AddField("id")
+                , arguments: new Dictionary<string, object>
+                {
+                    { "item_name", "$itemName" },
+                    { "board_Id", "$boardId"  },
+                    { "group_id", "$groupId" },
+                    { "column_values", "$columnValues" },
+                    { "create_labels_if_missing", "$createLabelsIfMissing" },
+                }).Build();
+
             throw new NotImplementedException();
         }
 
@@ -431,12 +587,21 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public Item CreateSubitem(long parentItemId, string itemName, string columnValues, bool createLabelsIfMissing)
         {
-            string query = @"
-                mutation ($parentItemId: ID!, $itemName: String!, $columnValues: JSON, $createLabelsIfMissing: Boolean) {
-                    create_subitem(parent_item_id: $parentItemId, item_name: $itemName, $column_values: $columnValues, create_labels_if_missing: $createLabelsIfMissing) {
-                        id
-                    }
-                }";
+            var query = new GraphQLQueryBuilder("mutation")
+                .AddVariable("$parentItemId", "ID!")
+                .AddVariable("$itemName", "String!")
+                .AddVariable("$columnValues", "JSON")
+                .AddVariable("$createLabelsIfMissing", "Boolean")
+                .AddNestedField("create_subitem", q => q
+                    .AddField("id")
+                , arguments: new Dictionary<string, object>
+                {
+                    { "parent_item_id", "$parentItemId" },
+                    { "item_name", "$itemName" },
+                    { "column_values", "$columnValues" },
+                    { "create_labels_if_missing", "$createLabelsIfMissing" },
+                }).Build();
+
             throw new NotImplementedException();
         }
 
@@ -450,12 +615,19 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public Workspace CreateWorkspace(string name, string kind, string description)
         {
-            string query = @"
-                mutation ($name: String!, $kind: WorkspaceKind!, $description: String) {
-                    create_workspace(name: $name, kind: $kind, description: $description) {
-                        id
-                    }
-                }";
+            var query = new GraphQLQueryBuilder("mutation")
+                .AddVariable("$name", "String!")
+                .AddVariable("$kind", "WorkspaceKind!")
+                .AddVariable("$description", "String")
+                .AddNestedField("create_workspace", q => q
+                    .AddField("id")
+                , arguments: new Dictionary<string, object>
+                {
+                    { "name", "$name" },
+                    { "kind", "$kind"  },
+                    { "description", "$description" },
+                }).Build();
+
             throw new NotImplementedException();
         }
         #endregion
@@ -468,12 +640,15 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public Board DeleteBoard(long boardId)
         {
-            string query = @"
-                mutation ($boardId: ID!) {
-                    delete_board(board_id: $boardId) {
-                        id
-                    }
-                }";
+            var query = new GraphQLQueryBuilder("mutation")
+                .AddVariable("$boardId", "ID!")
+                .AddNestedField("delete_board", q => q
+                    .AddField("id")
+                , arguments: new Dictionary<string, object>
+                {
+                    { "board_id", "$boardId"  },
+                }).Build();
+
             throw new NotImplementedException();
         }
 
@@ -486,12 +661,17 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public Column DeleteColumn(long boardId, string columnId)
         {
-            string query = @"
-                mutation ($boardId: ID!, $columnId: String!) {
-                    delete_column(board_id: $boardId, column_id: $columnId) {
-                        id
-                    }
-                }";
+            var query = new GraphQLQueryBuilder("mutation")
+                .AddVariable("$boardId", "ID!")
+                .AddVariable("$columnId", "String!")
+                .AddNestedField("delete_column", q => q
+                    .AddField("id")
+                , arguments: new Dictionary<string, object>
+                {
+                    { "board_id", "$boardId"  },
+                    { "column_id", "$columnId" }
+                }).Build();
+
             throw new NotImplementedException();
         }
 
@@ -504,12 +684,17 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public IMondayGroup DeleteGroup(long boardId, string groupId)
         {
-            string query = @"
-                mutation ($boardId: ID!, $groupId: String!) {
-                    delete_group(board_id: $boardId, group_id: $groupId) {
-                        id
-                    }
-                }";
+            var query = new GraphQLQueryBuilder("mutation")
+                .AddVariable("$boardId", "ID!")
+                .AddVariable("$groupId", "String!")
+                .AddNestedField("delete_group", q => q
+                    .AddField("id")
+                , arguments: new Dictionary<string, object>
+                {
+                    { "board_id", "$boardId"  },
+                    { "group_id", "$groupId" }
+                }).Build();
+
             throw new NotImplementedException();
         }
 
@@ -521,12 +706,15 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public Item DeleteItem(long itemID)
         {
-            string query = @"
-                mutation ($itemId: ID) {
-                    delete_item(item_id: $itemId) {
-                        id
-                    }
-                }";
+            var query = new GraphQLQueryBuilder("mutation")
+                .AddVariable("$itemId", "ID")
+                .AddNestedField("delete_item", q => q
+                    .AddField("id")
+                , arguments: new Dictionary<string, object>
+                {
+                    { "item_id", "$itemId"  },
+                }).Build();
+
             throw new NotImplementedException();
         }
 
@@ -538,16 +726,18 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public Update DeleteUpdate(long updateId)
         {
-            string query = @"
-                mutation ($updateId: ID!) {
-                    delete_update(id: $updateId) {
-                        id
-                    }
-                }";
+            var query = new GraphQLQueryBuilder("mutation")
+                .AddVariable("$updateId", "ID!")
+                .AddNestedField("delete_update", q => q
+                    .AddField("id")
+                , arguments: new Dictionary<string, object>
+                {
+                    { "id", "$updateId"  },
+                }).Build();
+
             throw new NotImplementedException();
         }
-        #endregion
-        #region DuplicatEntities
+        
         /// <summary>
         /// Delete workspace.
         /// </summary>
@@ -556,15 +746,20 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public Workspace DeleteWorkspace(long workspaceId)
         {
-            string query = @"
-                mutation ($workspaceId: ID!) {
-                    delete_workspace(workspace_id: $workspaceId) {
-                        id
-                    }
-                }";
+            var query = new GraphQLQueryBuilder("mutation")
+                .AddVariable("$workspaceId", "ID!")
+                .AddNestedField("delete_workspace", q => q
+                    .AddField("id")
+                , arguments: new Dictionary<string, object>
+                {
+                    { "workspace_id", "$workspaceId"  },
+                }).Build();
+
             throw new NotImplementedException();
         }
+        #endregion
 
+        #region DuplicatEntities
         /// <summary>
         /// Duplicate a board.
         /// </summary>
@@ -676,6 +871,14 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             if (!Initialize().IsOk())
                 return null;
 
+            var query = new GraphQLQueryBuilder()
+                .AddVariable("$assetIds", "[ID!]")
+                .AddNestedField("assets", q => q.AssetProps()
+                , arguments: new Dictionary<string, object>
+                {
+                    { "ids", new [] { "$assetIds" } }
+                }).Build();
+                /*
             var query = @"
                 query ($assetIds: [ID!]!) {
                     assets (ids: [$assetIds]) {
@@ -686,6 +889,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                         url_thumbnail
                     }
                 }";
+                */
 
             var variables = new Dictionary<string, object>()
             {
@@ -704,6 +908,25 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             if (!Initialize().IsOk())
                 return null;
 
+            var query = new GraphQLQueryBuilder()
+               .AddVariable("$boardId", "ID!")
+               .AddNestedField("boards", q => q
+                   .AddField("id")
+                   .AddField("name")
+                   .AddField("type")
+                   .AddNestedField("columns", q1 => q1
+                       .AddField("id")
+                       .AddField("title")
+                       .AddField("type")
+                       .AddField("settings_str")
+                   )
+               , arguments: new Dictionary<string, object>
+                   {
+                       { "ids", new[] { "$boardId" } },
+                       { "limit", 1 }
+                   }).Build();
+
+            /*
             var query = @"
                 query ($boardId: ID!) {
                     boards (ids: [$boardId] limit:1) {
@@ -718,6 +941,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 	                }
                 }
             ";
+            */
             var variables = new Dictionary<string, object>()
             {
                 { "boardId", id }
@@ -737,23 +961,28 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             {
                 return null;
             }
-            var query = @"
-                query ($boardId: ID!){
-                    boards(ids: [$boardId] ) {
-                        id
-                        name
-                        workspace {
-                            id
-                            name
-                        }
-                    }
-                }";
+
+            var query = new GraphQLQueryBuilder()
+                .AddVariable("$boardId", "ID!")
+                .AddNestedField("boards", q => q
+                    .AddField("id")
+                    .AddField("name")
+                    .AddField("type")
+                    .AddNestedField("workspace", q1 => q1
+                        .AddField("id")
+                        .AddField("name")
+                    )
+                , arguments: new Dictionary<string, object>
+                {
+                    { "ids", new[] { "$boardId" } }
+                }).Build();
+
             var variables = new Dictionary<string, object>()
             {
                 { "boardId", boardId }
             };
 
-            var queryData = Query<GetBoardsResponse>(query, variables);//GetBoardWorkspaceResponse>(query, variables);
+            var queryData = Query<GetBoardsResponse>(query, variables);
             var board = queryData.Boards[0];
             var workspace = board.Workspace;
             return workspace.Name ?? null;
@@ -764,14 +993,15 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             if (!Initialize().IsOk())
                 return null;
 
-            string query = @"
-                query {
-                    boards(limit: 500) {
-                        id
-                        name
-                        type
-                    }
-                }";
+            var query = new GraphQLQueryBuilder()
+                .AddNestedField("boards", q => q
+                    .AddField("id")
+                    .AddField("name")
+                    .AddField("type")
+                , arguments: new Dictionary<string, object>
+                    {
+                        { "limit", 500 }
+                    }).Build();
 
             var queryData = Query<GetBoardsResponse>(query);
             if (queryData == null) return null;
@@ -785,116 +1015,51 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             if (!Initialize().IsOk())
                 return null;
 
-            var query = @"
+            var query = new GraphQLQueryBuilder()
+                .AddVariable("$itemId", "ID!")
+                .AddNestedField("items", q => q
+                    .AddField("id")
+                    .AddField("name")
+                    .AddField("created_at")
+                    .AddNestedField("board", q1 => q1
+                        .AddField("id")
+                        .AddField("name")
+                        .AddField("type")
+                    )
+                    .AddNestedField("column_values", q2 => q2
+                        .ColumnValueProps()
+                        .FileValueFragment()
+                        .EmailValueFragment()
+                        .StatusValueFragment()
+                        .DateValueFragment()
+                        .BoardRelationValueFragment()
+                        .ButtonValueFragment()
+                        .MirrorValueFragment()
+                        .AddNestedField("column", qc => qc.ColumnValueProps())
+                    )
+                    .AddNestedField("updates", q16 => q16
+                        .UpdateProps()
+                        .AddNestedField("replies", q18 => q18.UpdateProps() )
+                        .AddNestedField("assets", q20 => q20.AssetProps() )
+                    )
+                , arguments: new Dictionary<string, object>
+                {
+                    { "ids", new [] { "$itemId" } },
+                    { "limit", 1 }
+                }).Build();
+
+
+           /*
+            string query = @"
                 query ($itemId: ID!) {
-                  items(ids: [$itemId], limit: 1) {
-                    id
-                    name
-                    created_at
-                    board {
-                      id
-                      name
+                    items(ids: [$itemId], limit: 1) {"
+                        + GraphQLFragment.ItemPropsStr
+                        + GraphQLFragment.ItemBoardQueryStr
+                        + GraphQLFragment.ColumnValueQueryStr
+                        + GraphQLFragment.UpdateQueryStr + @"
                     }
-                    column_values {
-                      id
-                      text
-                      type
-                      value
-                      ... on ButtonValue {
-                        id
-                        color
-                        buttonLabel: label
-                      }
-                      ... on MirrorValue {
-                        display_value
-                      }
-                      ... on BoardRelationValue {
-                        value
-                        display_value
-                        linked_items {
-                          id
-                          relative_link
-                        }
-                        linked_item_ids
-                      }
-                      ... on DateValue {
-                        id
-                        date
-                        time
-                      }
-                      ... on StatusValue {
-                        id
-                        value
-                        index
-                        statusLabel: label
-                        is_done
-                        label_style {
-                          color
-                          border
-                        }
-                      }
-                      ... on EmailValue {
-                        id
-                        email
-                      }
-                      ... on FileValue {
-                        id
-                        files {
-                          ... on FileDocValue {
-                            file_id
-                            url
-                          }
-                          ... on FileAssetValue {
-                            asset_id
-                            asset {
-                              url
-                              name
-                              url_thumbnail
-                              public_url
-                            }
-                          }
-                        }
-                      }
-                      column {
-                        id
-                        title
-                        settings_str
-                        description
-                        type
-                      }
-                    }
-                    updates {
-                      id
-                      body
-                      text_body
-                      created_at
-                      creator_id
-                      assets {
-                        id
-                        name
-                        file_size
-                        public_url
-                        url_thumbnail
-                      }
-                      creator {
-                        id
-                        name
-                      }
-                      replies {
-                        id
-                        body
-                        text_body
-                        created_at
-                        creator_id
-                        creator {
-                          id
-                          name
-                        }
-                      }
-                    }
-                  }
-                }
-            ";
+                }";
+           */
 
             var variables = new Dictionary<string, object>()
             {
@@ -917,6 +1082,49 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
             List<Item> allItems = new List<Item>();
 
+            var query = new GraphQLQueryBuilder()
+                .AddVariable("$boardId", "ID!")
+                .AddVariable("$columnValue", "String!")
+                .AddVariable("$columnId", "String!")
+                .AddNestedField("items_page_by_column_values", q => q
+                    .AddField("cursor")
+                    .AddNestedField("items", q1 => q1
+                        .AddField("id")
+                        .AddField("name")
+                        .AddField("created_at")
+                        .AddNestedField("column_values", q2 => q2
+                            .ColumnValueProps()
+                            .AddNestedField("column", q3 => q3.ColumnProps() )
+                            .MirrorValueFragment()
+                            .StatusValueFragment()
+                        )
+                    )
+                , arguments: new Dictionary<string, object>
+                {
+                    { "limit", 500 },
+                    { "board_id", "$boardId" },
+                    { "columns", new List<Dictionary<string, object>>
+                        {
+                            new Dictionary<string, object>
+                            {
+                                { "column_id", "$columnId" },
+                                { "column_values", new List<string> { "$columnValue" } }
+                            }
+                        }
+                    }
+                }).Build();
+
+            /*
+             // Convert the list of objects to a list of dictionaries
+List<Dictionary<string, object>> columnsList = itemsList.Select(item =>
+    new Dictionary<string, object>
+    {
+        { "column_id", item.ColumnId },
+        { "column_values", item.ColumnValues }
+    }).ToList();
+            */
+
+            /*
             var initialQuery = @"
                 query($boardId: ID!, $columnValue: String!, $columnId: String!) {
                     items_page_by_column_values(limit: 500, board_id: $boardId, columns: [{ column_id:$columnId, column_values:[$columnValue] }]) {
@@ -953,6 +1161,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                         }
                     }
                 }";
+            */
 
             var variables = new Dictionary<string, object>()
             {
@@ -961,7 +1170,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 { "columnId", columnValues[0].ColumnId }
             };
 
-            var initialData = Query<GetItemsByPageResponse>(initialQuery, variables);
+            var initialData = Query<GetItemsByPageResponse>(query, variables);
             if (initialData == null) return allItems;
             if (initialData.ItemsPage == null) return allItems;
             var itemsPage = initialData.ItemsPage;
@@ -980,6 +1189,35 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
             List<Item> allItems = new List<Item>();
 
+            var query = new GraphQLQueryBuilder()
+                .AddVariable("$boardId", "ID!")
+                .AddVariable("$emailColumnId", "String!")
+                .AddVariable("$statusColumnId", "String!")
+                .AddNestedField("boards", q => q
+                    .AddField("id")
+                    .AddNestedField("items_page", q1 => q1
+                        .AddField("cursor")
+                        .AddNestedField("items", q2 => q2
+                            .AddField("id")
+                            .AddField("name")
+                            .AddField("created_at")
+                            .AddNestedField("column_values", q3 => q3
+                                .ColumnValueProps()
+                                .AddNestedField("column", q4 => q4.ColumnProps())
+                                .MirrorValueFragment()
+                                .StatusValueFragment()
+                            , arguments: new Dictionary<string, object>
+                            {
+                                { "ids", new[] { "$emailColumnId", "$statusColumnId" } }
+                            })
+                        )
+                    )
+                , arguments: new Dictionary<string, object>
+                {
+                    { "ids", new [] { "$boardId" } },
+                    { "limit", 1 },
+                }).Build();
+            /*
             // Initial query
             var initialQuery = @"
     query( $boardId: ID!, $emailColumnId: String!, $statusColumnId: String!) {
@@ -1020,14 +1258,14 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             }
         }
     }";
-
+            */
             var variables = new Dictionary<string, object>()
             {
                 { "boardId", boardId },
                 { "emailColumnId", emailMatchColumnId },
                 { "statusColumnId", statusColumnId }
             };
-            var initialQueryData = Query <GetBoardsResponse> (initialQuery, variables);
+            var initialQueryData = Query <GetBoardsResponse> (query, variables);
             if (initialQueryData == null) return allItems;
             if (initialQueryData.Boards == null) return allItems;
             var board = initialQueryData.Boards[0];
@@ -1043,6 +1281,33 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
             while (!string.IsNullOrEmpty(cursor))
             {
+                var nextItemsQuery = new GraphQLQueryBuilder()
+                    .AddVariable("cursorVal", "String")
+                    .AddVariable("emailColumnId", "String!")
+                    .AddVariable("statusColumnId", "String!")
+                    .AddNestedField("next_items_page", q => q
+                        .AddField("cursor")
+                        .AddNestedField("items", q1 => q1
+                            .AddField("id")
+                            .AddField("name")
+                            .AddField("created_at")
+                            .AddNestedField("column_values", q2 => q2
+                                .ColumnValueProps()
+                                .AddNestedField("column", q3 => q3.ColumnProps() )
+                                .StatusValueFragment()
+                                .MirrorValueFragment()
+                            , arguments: new Dictionary<string, object>
+                            {
+                                { "ids", new[] { "$emailColumnId", "$statusColumnId" } }
+                            })
+                        )
+                    , arguments: new Dictionary<string, object>
+                    {
+                        { "cursor", "$cursorVal" },
+                        { "limit", 10 }
+                    }).Build();
+
+                /*
                 var nextItemsQuery =
                     @"query ($cursorVal: String, $emailColumnId: String!, $statusColumnId: String!) {
                         next_items_page(cursor: $cursorVal, limit: 1) {
@@ -1076,6 +1341,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                             }
                         }
                     }";
+                */
 
                 variables = new Dictionary<string, object>()
                 {
