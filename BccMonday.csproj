@@ -45,6 +45,7 @@
     <Compile Include="Models\BccMondayBoardService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\Api\GraphQLFragment.cs" />
+    <Compile Include="Utilities\Api\GraphQLQueryBuilder.cs" />
     <Compile Include="Utilities\Api\Interfaces\IColumnValue.cs" />
     <Compile Include="Utilities\Api\Interfaces\IComplexity.cs" />
     <Compile Include="Utilities\Api\Interfaces\IItemsPageByColumnValuesQuery.cs" />
