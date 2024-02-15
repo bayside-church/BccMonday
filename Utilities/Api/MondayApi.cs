@@ -137,36 +137,6 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                     { "item_id", "$itemId" },
                     { "body", "$body" },
                 }).Build();
-            
-            /*
-            var query = parentUpdateId != null
-                ? @"mutation ($itemId: ID, $body: String!, $parentUpdateId: ID){
-                        create_update (item_id: $itemId, body: $body, parent_id: $parentUpdateId) {
-                            id
-                            body
-                            text_body
-                            created_at
-                            creator_id
-                            creator {
-                                id
-                                name
-                            }
-                        }
-                    }"
-                : @"mutation ($itemId: ID, $body: String!) {
-                        create_update (item_id: $itemId, body: $body) {
-                            id
-                            body
-                            text_body
-                            created_at
-                            creator_id
-                            creator {
-                                id
-                                name
-                            }
-                        }
-                    }";
-            */
 
             var variables = new Dictionary<string, object>()
             {
@@ -211,30 +181,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                     { "column_id", "$columnId" },
                     { "item_id", "$itemId" }
                 }).Build();
-                /*
-            string query = @"
-                mutation ($boardId: ID!, $columnId: String!, $itemId: ID, $newValue: String){
-                    change_simple_column_value(
-                        board_id: $boardId
-                        column_id: $columnId
-                        item_id: $itemId
-                        value: $newValue)
-                        {
-                            id
-                            column_values(ids: [$columnId]) {
-                                id
-                                text
-                                type
-                                value
-                                ... on StatusValue {
-                                    label_style {
-                                        color
-                                    }
-                                }
-                            }
-                        }
-                    }";
-                */
+
             var variables = new Dictionary<string, object>()
             {
                 { "boardId", boardId },
@@ -285,18 +232,6 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                     {
                         { "update_id", "$updateId" }
                     }).Build();
-                /*
-                string query = @"
-                        mutation ($file: File!, $updateId: ID!) {
-                            add_file_to_update(file: $file, update_id: $updateId) {
-                                id
-                                file_size
-                                name
-                                public_url
-                                url_thumbnail
-                            }
-                        }";
-                */
 
                 var variables = new Dictionary<string, object>
                 {
@@ -878,18 +813,6 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 {
                     { "ids", new [] { "$assetIds" } }
                 }).Build();
-                /*
-            var query = @"
-                query ($assetIds: [ID!]!) {
-                    assets (ids: [$assetIds]) {
-                        id
-                        public_url
-                        name
-                        file_size
-                        url_thumbnail
-                    }
-                }";
-                */
 
             var variables = new Dictionary<string, object>()
             {
@@ -926,22 +849,6 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                        { "limit", 1 }
                    }).Build();
 
-            /*
-            var query = @"
-                query ($boardId: ID!) {
-                    boards (ids: [$boardId] limit:1) {
-  	                    name
-  	                    id
-                        columns {
-                            id
-                            title
-                            type
-                            settings_str
-                        }
-	                }
-                }
-            ";
-            */
             var variables = new Dictionary<string, object>()
             {
                 { "boardId", id }
@@ -1048,19 +955,6 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                     { "limit", 1 }
                 }).Build();
 
-
-           /*
-            string query = @"
-                query ($itemId: ID!) {
-                    items(ids: [$itemId], limit: 1) {"
-                        + GraphQLFragment.ItemPropsStr
-                        + GraphQLFragment.ItemBoardQueryStr
-                        + GraphQLFragment.ColumnValueQueryStr
-                        + GraphQLFragment.UpdateQueryStr + @"
-                    }
-                }";
-           */
-
             var variables = new Dictionary<string, object>()
             {
                 { "itemId", id }
@@ -1124,45 +1018,6 @@ List<Dictionary<string, object>> columnsList = itemsList.Select(item =>
     }).ToList();
             */
 
-            /*
-            var initialQuery = @"
-                query($boardId: ID!, $columnValue: String!, $columnId: String!) {
-                    items_page_by_column_values(limit: 500, board_id: $boardId, columns: [{ column_id:$columnId, column_values:[$columnValue] }]) {
-                        cursor
-                        items {
-                            id
-                            name
-                            created_at
-                            column_values {
-                                id
-                                text
-                                type
-                                value
-                                column {
-                                    id
-                                    title
-                                    settings_str
-                                }
-                                ... on MirrorValue {
-                                    display_value
-                                }
-                                ... on StatusValue {
-                                    id
-                                    value
-                                    index
-                                    statusLabel: label
-                                    is_done
-                                    label_style {
-                                        color
-                                        border
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }";
-            */
-
             var variables = new Dictionary<string, object>()
             {
                 { "boardId", boardId },
@@ -1217,48 +1072,7 @@ List<Dictionary<string, object>> columnsList = itemsList.Select(item =>
                     { "ids", new [] { "$boardId" } },
                     { "limit", 1 },
                 }).Build();
-            /*
-            // Initial query
-            var initialQuery = @"
-    query( $boardId: ID!, $emailColumnId: String!, $statusColumnId: String!) {
-        boards(ids: [$boardId], limit: 1) {
-            id
-            items_page(limit: 500) {
-                cursor
-                items {
-                    id
-                    name
-                    created_at
-                    column_values(ids: [ $emailColumnId, $statusColumnId ]) {
-                        id
-                        text
-                        type
-                        value
-                        column {
-                            id
-                            title
-                            settings_str
-                        }
-                        ... on MirrorValue {
-                            display_value
-                        }
-                        ... on StatusValue {
-                        id
-                        value
-                        index
-                        statusLabel: label
-                        is_done
-                        label_style {
-                          color
-                          border
-                        }
-                      }
-                    }
-                }
-            }
-        }
-    }";
-            */
+
             var variables = new Dictionary<string, object>()
             {
                 { "boardId", boardId },
@@ -1306,42 +1120,6 @@ List<Dictionary<string, object>> columnsList = itemsList.Select(item =>
                         { "cursor", "$cursorVal" },
                         { "limit", 10 }
                     }).Build();
-
-                /*
-                var nextItemsQuery =
-                    @"query ($cursorVal: String, $emailColumnId: String!, $statusColumnId: String!) {
-                        next_items_page(cursor: $cursorVal, limit: 1) {
-                            cursor
-                            items {
-                                id
-                                name
-                                created_at
-                                column_values(ids: [$emailColumnId, $statusColumnId]) {
-                                    id
-                                    text
-                                    type
-                                    value
-                                    column {
-                                        id
-                                        title
-                                        settings_str
-                                    }
-                                    ... on StatusValue {
-                                        id
-                                        value
-                                        index
-                                        statusLabel: label
-                                        is_done
-                                        label_style {
-                                            color
-                                            border
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }";
-                */
 
                 variables = new Dictionary<string, object>()
                 {
