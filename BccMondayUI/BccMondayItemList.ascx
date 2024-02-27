@@ -19,13 +19,11 @@
                 <Rock:GridFilter ID="gfMondayList"
                     OnApplyFilterClick="gfMondayList_ApplyFilterClick"
                     OnClearFilterClick="gfMondayList_ClearFilterClick"
-                    OnDisplayFilterValue="gfMondayList_DisplayFilterValue" runat="server">
-                    <Rock:PersonPicker ID="ppMondayEmail" Label="Requestor" Enabled="true" runat="server" />                   
+                    OnDisplayFilterValue="gfMondayList_DisplayFilterValue" runat="server">                
                     <Rock:RockDropDownList ID="ddlBoardOption" Label="Selected Board" runat="server" >
                         <asp:ListItem Text="Open" Value="Open"></asp:ListItem>
                         <asp:ListItem Text="Closed" Value="Closed"></asp:ListItem>
                     </Rock:RockDropDownList>
-                    <Rock:RockCheckBox ID="cbShowAll" Label="Show All Items" runat="server" />
                 </Rock:GridFilter>
                 <Rock:Grid ID="gMondayList" DataKeyNames="Id" OnRowSelected="gMondayList_RowSelected"
                     OnRowDataBound="gMondayList_RowDataBound" AllowSorting="true" runat="server">
