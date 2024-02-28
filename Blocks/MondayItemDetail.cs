@@ -19,14 +19,14 @@ using System.Threading.Tasks;
 namespace com.baysideonline.BccMonday.Blocks
 {
     /// <summary>
-    /// Displays the details of a particular group.
+    /// Displays the details of a particular Monday.com item.
     /// </summary>
-    /// <seealso cref="Rock.Blocks.RockObsidianBlockType" />
+    /// <seealso cref="Rock.Blocks.RockBlockType" />
 
     [DisplayName("Monday Item Detail")]
     [Category("com_baysideonline > BccMonday")]
     [Description("Monday.com Item Detail block")]
-    //[SupportedSiteTypes(Rock.Model.SiteType.Web)]
+    [SupportedSiteTypes(Rock.Model.SiteType.Web)]
 
     #region Block Attributes
 
@@ -35,9 +35,9 @@ namespace com.baysideonline.BccMonday.Blocks
 
     [Rock.SystemGuid.EntityTypeGuid("65ea330e-dc04-4bcc-87b5-829f0d7880bd")]
     [Rock.SystemGuid.BlockTypeGuid("457a0eec-ae0e-40e5-8391-f00d9da5594d")]
-    public class MondayItemDetail : RockObsidianBlockType
+    public class MondayItemDetail : RockBlockType
     {
-        public override string BlockFileUrl => $"/Plugins/com_baysideonline/BccMonday/Blocks/mondayItemDetail.obs";
+        public override string ObsidianFileUrl => $"/Plugins/com_baysideonline/BccMonday/Blocks/mondayItemDetail.obs";
 
         #region Keys
 
@@ -142,7 +142,7 @@ namespace com.baysideonline.BccMonday.Blocks
             var api = new MondayApi();
             var item = api.GetItem(mondayItemId);
             item.Updates.RemoveAll(u => u.Creator.CreatorId.Equals("-4"));
-            return (Item)item;
+            return item;
         }
 
         public BccMondayBoard GetBoard(long mondayBoardId)

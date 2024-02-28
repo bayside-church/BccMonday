@@ -10,14 +10,14 @@ using System.Threading.Tasks;
 namespace com.baysideonline.BccMonday.Blocks
 {
     /// <summary>
-    /// Displays the details of a particular group.
+    /// Displays a list of BccMonday Boards.
     /// </summary>
-    /// <seealso cref="Rock.Blocks.RockObsidianBlockType" />
+    /// <seealso cref="Rock.Blocks.RockBlockType" />
 
     [DisplayName("Monday Board List")]
     [Category("com_baysideonline > BccMonday")]
     [Description("Monday.com Board List block")]
-    //[SupportedSiteTypes(Rock.Model.SiteType.Web)]
+    [SupportedSiteTypes(Rock.Model.SiteType.Web)]
 
     #region Block Attributes
 
@@ -26,9 +26,9 @@ namespace com.baysideonline.BccMonday.Blocks
 
     [Rock.SystemGuid.EntityTypeGuid("dbb031cd-f635-459d-8918-9f363cfdc9e2")]
     [Rock.SystemGuid.BlockTypeGuid("321c1cef-4a25-4092-98bf-df668c38c134")]
-    public class MondayBoardList : RockObsidianBlockType
+    public class MondayBoardList : RockBlockType
     {
-        public override string BlockFileUrl => $"/Plugins/com_baysideonline/BccMonday/Blocks/MondayBoardList.obs";
+        public override string ObsidianFileUrl => $"/Plugins/com_baysideonline/BccMonday/Blocks/MondayBoardList.obs";
 
         #region Keys
 

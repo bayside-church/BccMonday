@@ -1,4 +1,8 @@
-﻿namespace com.baysideonline.BccMonday.Utilities.Api
+﻿using com.baysideonline.BccMonday.Utilities.Api.Schema;
+using Newtonsoft.Json;
+using System;
+
+namespace com.baysideonline.BccMonday.Utilities.Api
 {
     public interface IAsset
     {
@@ -26,5 +30,30 @@
         /// url to view the asset in thumbnail mode. Only available for images.
         /// </summary>
         string UrlThumbnail { get; set; }
+
+        /// <summary>
+        /// The file's creation date.
+        /// </summary>
+        DateTime CreatedAt { get; set; }
+
+        /// <summary>
+        /// The file's extension
+        /// </summary>
+        int FileExtension { get; set; }
+
+        /// <summary>
+        /// original geometry of the asset.
+        /// </summary>
+        string OriginalGeometry { get; set; }
+
+        /// <summary>
+        /// The user who uploaded the file
+        /// </summary>
+        MondayUser Uploader { get; set; }
+
+        /// <summary>
+        /// url to view the asset
+        /// </summary>
+        string Url { get; set; }
     }
 }

@@ -91,9 +91,6 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
             gfMondayList.ApplyFilterClick += gfMondayList_ApplyFilterClick;
             gfMondayList.DisplayFilterValue += gfMondayList_DisplayFilterValue;
 
-
-            ppMondayEmail.Enabled = _canFilterEmail;
-
             // DataKeyNames will be mapped to MondayItemId.
             // This is for the Detail class to find the correct Monday Item by it's MondayItemId.
             gMondayList.DataKeyNames = new[] { "Id" };
@@ -103,8 +100,6 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
             // it's nice to repaint the screen if these settings would alter it
             this.BlockUpdated += Block_BlockUpdated;
             this.AddConfigurationUpdateTrigger(upnlContent);
-
-            cbShowAll.Visible = _canShowAllItems;
         }
 
         // called on every load (including post back)
@@ -128,26 +123,6 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
 
             base.OnLoad(e);
         }
-
-        /*
-        protected override void LoadViewState(object savedState)
-        {
-            base.LoadViewState(savedState);
-            if (ViewState["MondayItems"] != null && !ViewState["MondayItems"].Equals("-1"))
-            {
-                string mondayItems = (string)ViewState["MondayItems"];
-                Items = JsonConvert.DeserializeObject<List<Item>>(mondayItems);
-            }
-        }*/
-
-        /*
-        protected override object SaveViewState()
-        {
-            string mondayItems = JsonConvert.SerializeObject(Items);
-            ViewState["MondayItems"] = mondayItems;
-            return base.SaveViewState();
-        }
-        */
 
         #endregion
 
@@ -180,22 +155,22 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
             NavigateToLinkedPage("DetailPage", queryParams);
         }
 
+        public void gfMondayList_DisplayFilterValue(object sender, GridFilter.DisplayFilterValueArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Handles the gfMondayList_ApplyFilterClick
         /// </summary>
         /// <remarks>Stores the user selected filter options</remarks>
         protected void gfMondayList_ApplyFilterClick(object sender, EventArgs e)
         {
-            int personId = ppMondayEmail.PersonId ?? CurrentPerson.Id;
-            //var preferences = GetBlockPersonPreferences();
+            int personId = CurrentPerson.Id;
+            var preferences = GetBlockPersonPreferences();
 
-            //preferences.SetValue(PreferenceKeys.Requestor, _canFilterEmail ? personId.ToString() : string.Empty);
-            //preferences.SetValue(PreferenceKeys.ShowAllItems, cbShowAll.Checked.ToString());
+            preferences.Save();
 
-            gfMondayList.SaveUserPreference("Requestor",
-                _canFilterEmail ? personId.ToString() : string.Empty);
-            gfMondayList.SaveUserPreference("Show All Items",
-                cbShowAll.Checked.ToString());
             if (string.Equals(ddlBoardOption.SelectedValue, "Closed"))
             {
                 gMondayList.DataSource = Items;
@@ -204,58 +179,16 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
             }
             else
             {
-               // preferences.SetValue(PreferenceKeys.SelectedBoard, ddlBoardOption.SelectedValue);
-                gfMondayList.SaveUserPreference("Selected Board",
-                    ddlBoardOption.SelectedValue);
+                preferences.SetValue(PreferenceKeys.SelectedBoard, ddlBoardOption.SelectedValue);
+                preferences.Save();
                 BindGrid();
-            }
-        }
-
-        /// <summary>
-        /// Handles the gfMondayList_DisplayFilterValue
-        /// </summary>
-        /// <remarks> Displays the filter options</remarks>
-        protected void gfMondayList_DisplayFilterValue(object sender, GridFilter.DisplayFilterValueArgs e)
-        {
-            switch (e.Key)
-            {
-                case "Requestor":
-                    string requestorName = CurrentPerson.FullName;
-
-                    if (_canFilterEmail)
-                    {
-                        int? personId = ppMondayEmail.PersonId;
-                        if (personId.HasValue)
-                        {
-                            var requestor = new PersonService(new RockContext())
-                                .Get(personId.Value);
-
-                            if (requestor != null)
-                                requestorName = requestor.FullName;
-                        }
-                    }
-
-                    e.Value = requestorName;
-                    break;
-                case "Selected Board":
-                    Console.WriteLine("");
-                    break;
-                case "Show All Items":
-                    if (!_canShowAllItems)
-                    {
-                        e.Value = string.Empty;
-                    }
-                    break;
-                default:
-                    e.Value = string.Empty;
-                    break;
             }
         }
 
         // handles the gfMondayList_ClearFilterClick
         protected void gfMondayList_ClearFilterClick(object sender, EventArgs e)
         {
-            gfMondayList.DeleteUserPreferences();
+            gfMondayList.DeleteFilterPreferences();
             BindGrid();
         }
 
@@ -277,31 +210,8 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
         /// <remarks> Applies the selected filter options to the item list </remarks>
         protected void SetFilter()
         {
-            var requestorId = gfMondayList
-                .GetUserPreference("Requestor")
-                .AsIntegerOrNull();
-
-            if (!(_canFilterEmail && requestorId.HasValue))
-            {
-                requestorId = CurrentPersonId;
-                gfMondayList.SaveUserPreference("Requestor",
-                    requestorId?.ToString());
-            }
-
-            if (requestorId.HasValue && requestorId.Value != 0)
-            {
-                var requestor = new PersonService(new RockContext()).Get(requestorId.Value);
-                if (requestor != null)
-                {
-                    ppMondayEmail.SetValue(requestor);
-                }
-            }
-
-            var boardPreference = gfMondayList.GetUserPreference("Selected Board");
-            var showAllPreference = gfMondayList.GetUserPreference("Show All Items");
-
-            cbShowAll.Checked = !string.IsNullOrWhiteSpace(showAllPreference) && bool.Parse(showAllPreference);
-
+            var preferences = GetBlockPersonPreferences();
+            var boardPreference = preferences.GetValue(PreferenceKeys.SelectedBoard);
             ddlBoardOption.SetValue(!string.IsNullOrWhiteSpace(boardPreference) ? boardPreference : "Open");
         }
 
@@ -316,19 +226,23 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
                 var sortProperty = gMondayList.SortProperty;
 
                 var api = new MondayApi();
-
-                var requestorId = ppMondayEmail.PersonId ?? CurrentPersonId.Value;
-                var requestorPerson = new PersonService(context)
-                        .Get(requestorId);
-                var requestorEmail = requestorPerson.Email;
+                
+                var requestorEmail = CurrentPerson.Email;
 
                 var boardOption = ddlBoardOption.SelectedValue;
                 var chosenBoard = GetChosenBoard(boardOption);
 
                 if (requestorEmail.IsNotNullOrWhiteSpace() && chosenBoard.HasValue)
                 {
-                    var result = api.GetItemsByBoard(chosenBoard.Value,
-                        Board.EmailMatchColumnId, Board.MondayStatusColumnId);
+                    List<ItemsPageByColumnValuesQuery> columnValuesQuery = new List<ItemsPageByColumnValuesQuery>
+                    {
+                        new ItemsPageByColumnValuesQuery
+                        {
+                            ColumnId = Board.EmailMatchColumnId,
+                            ColumnValues = new List<string> { requestorEmail }
+                        }
+                    };
+                    var result = api.GetItemsByBoardAndColumnValues(chosenBoard.Value, columnValuesQuery);
 
                     //Check if list is empty/null
                     if (result != null && result.Count > 0)
@@ -362,18 +276,6 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
                                 string.Equals(i.ColumnValues[statusIndex].Text, Board.MondayStatusClosedValue) ||
                                 string.Equals(i.ColumnValues[statusIndex].Text, Board.MondayStatusCompleteValue)
                             );
-                        }
-
-                        //if the admin wants to see all items
-                        if (!(_canFilterEmail && cbShowAll.Checked))
-                        {
-                            items = items.Where(i =>
-                            {
-                                var requestorEmailValue = i.GetRequestorEmail(Board.EmailMatchColumnId);
-
-                                return string.Equals(requestorEmailValue, requestorEmail, StringComparison.OrdinalIgnoreCase);
-                            })
-                            .ToList();
                         }
 
                         items = SortItems(sortProperty, items, statusIndex);
@@ -523,8 +425,9 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
         protected void mdDialog_SaveClick(object sender, EventArgs e)
         {
             mdDialog.Hide();
-            gfMondayList.SaveUserPreference("Selected Board",
-                ddlBoardOption.SelectedValue);
+            var preferences = GetBlockPersonPreferences();
+            preferences.SetValue(PreferenceKeys.SelectedBoard, ddlBoardOption.SelectedValue);
+            preferences.Save();
             SetFilter();
             BindGrid();
         }

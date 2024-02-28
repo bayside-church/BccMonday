@@ -25,6 +25,12 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Interfaces
         public override AbstractColumnValue ReadJson(JsonReader reader, Type objectType, AbstractColumnValue existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
             JObject jsonObject = JObject.Load(reader);
+            if (jsonObject.Count == 0)
+            {
+                // You can return null or a default value here, depending on your requirements.
+                return null;
+            }
+
             string type = jsonObject["type"].ToString();
 
             if (columnTypeMappings.TryGetValue(type, out Type concreteType))
