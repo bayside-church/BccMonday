@@ -1,0 +1,40 @@
+<template>
+    <div v-html="content"></div>
+</template>
+
+<script setup lang="ts">
+import { provide, ref } from "vue";
+import { onConfigurationValuesChanged, useConfigurationValues, useInvokeBlockAction, useReloadBlock } from "@Obsidian/Utility/block";
+import type { MondayItemDetailBag, MondayUpdateBag } from "./ViewModels/MondayItemDetailBag";
+import MondayUpdate from "./mondayItemDetail/mondayUpdate.partial.obs";
+import FileColumnValue from "./mondayItemDetail/fileColumnValue.partial.obs";
+import BasicColumnValue from "./mondayItemDetail/basicColumnValue.partial.obs";
+import StatusColumnValue from "./mondayItemDetail/statusColumnValue.partial.obs";
+import BoardRelationColumnValue from "./mondayItemDetail/boardRelationColumnValue.partial.obs";
+import { MondayItemDetailArgs } from "./ViewModels/MondayItemDetailArgs";
+
+const config = useConfigurationValues<{ content: string }>();
+const invokeBlockAction = useInvokeBlockAction();
+const reloadBlock = useReloadBlock();
+console.log("Config from block:\n ",config);
+
+//#region Values
+const content = config.content;
+
+//#endregion
+
+//#region Computed Values
+
+//#endregion
+
+//#region Events
+
+//#endregion
+
+//#region Functions
+
+//#endregion
+
+onConfigurationValuesChanged(reloadBlock);
+
+</script>
