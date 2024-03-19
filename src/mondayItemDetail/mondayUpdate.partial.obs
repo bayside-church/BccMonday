@@ -34,8 +34,8 @@
 <script setup lang="ts">
 import { PropType, inject, ref } from "vue";
 import { useInvokeBlockAction } from "@Obsidian/Utility/block";
-import TextBox from "@Obsidian/Controls/textBox";
-import RockButton from "@Obsidian/Controls/rockButton";
+import TextBox from "@Obsidian/Controls/textBox.obs";
+import RockButton from "@Obsidian/Controls/rockButton.obs";
 import MondayReply from "./mondayReply.partial.obs";
 import MondayFile from "./mondayFile.partial.obs";
 import { MondayUpdateBag } from "../ViewModels/MondayItemDetailBag";

@@ -85,10 +85,9 @@
 <script setup lang="ts">
 import { provide, ref } from "vue";
 import { onConfigurationValuesChanged, useConfigurationValues, useInvokeBlockAction, useReloadBlock } from "@Obsidian/Utility/block";
-import RockButton from "@Obsidian/Controls/rockButton";
-import Panel from "@Obsidian/Controls/panel";
-import TextBox from "@Obsidian/Controls/textBox";
-import FileUploader from "@Obsidian/Controls/fileUploader";
+import RockButton from "@Obsidian/Controls/rockButton.obs";
+import TextBox from "@Obsidian/Controls/textBox.obs";
+import FileUploader from "@Obsidian/Controls/fileUploader.obs";
 import type { MondayItemDetailBag, MondayUpdateBag } from "./ViewModels/MondayItemDetailBag";
 import MondayUpdate from "./mondayItemDetail/mondayUpdate.partial.obs";
 import FileColumnValue from "./mondayItemDetail/fileColumnValue.partial.obs";

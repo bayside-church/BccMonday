@@ -1,4 +1,4 @@
-System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButton', '@Obsidian/Controls/textBox'], (function (exports) {
+System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButton.obs', '@Obsidian/Controls/textBox.obs'], (function (exports) {
   'use strict';
   var createElementVNode, defineComponent, openBlock, createElementBlock, toDisplayString, Fragment, createTextVNode, inject, ref, renderList, createBlock, unref, createCommentVNode, withCtx, onMounted, watch, normalizeStyle, provide, createVNode, useInvokeBlockAction, useConfigurationValues, useReloadBlock, onConfigurationValuesChanged, RockButton, TextBox;
   return {
