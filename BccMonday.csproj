@@ -44,6 +44,7 @@
     <Compile Include="Models\BccMondayBoardDisplayColumnService.cs" />
     <Compile Include="Models\BccMondayBoardService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities\Api\Config\MondayOptions.cs" />
     <Compile Include="Utilities\Api\GraphQLFragment.cs" />
     <Compile Include="Utilities\Api\GraphQLQueryBuilder.cs" />
     <Compile Include="Utilities\Api\Interfaces\IColumnValue.cs" />
@@ -155,6 +156,7 @@
       <HintPath>..\RockWeb\Bin\RestSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />

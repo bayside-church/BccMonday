@@ -1,4 +1,5 @@
-﻿using com.baysideonline.BccMonday.Utilities.Api.Schema;
+﻿using com.baysideonline.BccMonday.Utilities.Api.Config;
+using com.baysideonline.BccMonday.Utilities.Api.Schema;
 using Rock.Model;
 using System.Collections.Generic;
 
@@ -61,7 +62,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
         List<Asset> GetFilesByAssetIds(List<long> ids);
 
-        StatusColumnValue ChangeColumnValue(long boardId, long itemId, string columnId, string newValue);
+        StatusColumnValue ChangeColumnValue(ColumnChangeOptions options);
 
         Board GetBoard(long id);
 
