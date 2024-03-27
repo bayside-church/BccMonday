@@ -103,6 +103,8 @@
     <Compile Include="Blocks\MondayItemList.cs" />
     <Compile Include="Blocks\MondayBoardDetail.cs" />
     <Compile Include="Blocks\MondayBoardList.cs" />
+    <Compile Include="Workflows\CreateColumn.cs" />
+    <Compile Include="Workflows\CreateItem.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
