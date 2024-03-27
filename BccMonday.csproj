@@ -58,6 +58,7 @@
     <Compile Include="Utilities\Api\Interfaces\IWorkspace.cs" />
     <Compile Include="Utilities\Api\Responses\AddFileToUpdateResponse.cs" />
     <Compile Include="Utilities\Api\Responses\ChangeSimpleColumnValueResponse.cs" />
+    <Compile Include="Utilities\Api\Responses\CreateColumnResponse.cs" />
     <Compile Include="Utilities\Api\Responses\CreateUpdateResponse.cs" />
     <Compile Include="Utilities\Api\Responses\GetAssetsResponse.cs" />
     <Compile Include="Utilities\Api\Responses\GetBoardsResponse.cs" />

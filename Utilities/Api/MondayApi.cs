@@ -154,7 +154,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             return update;
         }
 
-        public StatusColumnValue ChangeColumnValue(long boardId, long itemId, string columnId, string newValue)
+        public StatusColumnValue ChangeColumnValue(ColumnChangeOptions options)
         {
             if (!Initialize().IsOk())
                 return null;
@@ -193,10 +193,10 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
             var variables = new Dictionary<string, object>()
             {
-                { "boardId", boardId },
-                { "columnId", columnId },
-                { "itemId", itemId },
-                { "newValue", newValue }
+                { "boardId", options.BoardId },
+                { "columnId", options.ColumnId },
+                { "itemId", options.ItemId },
+                { "newValue", options.Value }
             };
 
             var queryData = Query<ChangeSimpleColumnValueResponse>(query, variables);
@@ -367,7 +367,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <param name="value">The new description of the column</param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public Column ChangeColumnMetadata(string columnId, long boardId, string columnProperty, string value)
+        public Column ChangeColumnMetadata(ColumnChangeMetadataOptions options)
         {
             throw new NotImplementedException();
         }
@@ -396,7 +396,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <param name="createLabelsIfMissing">Create Status/Dropdown labels if they're missing. (Requires permission to change board structure)</param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public Item ChangeMultipleColumnValues(long itemId, long boardId, string columnValues, bool createLabelsIfMissing)
+        public Item ChangeMultipleColumnValues(ColumnChangeMultipleValuesOptions options)
         {
             throw new NotImplementedException();
         }
@@ -407,7 +407,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <param name="itemId">The item's unique identifier</param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public Item ClearItemUpdates(long itemId)
+        public Item ClearItemUpdates(ItemClearUpdatesOptions options)
         {
             var query = new GraphQLQueryBuilder("mutation")
                 .AddVariable("$itemId", "ID!")
@@ -423,8 +423,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             throw new NotImplementedException();
         }
         #region Create Entities
-        public Board CreateBoard(string boardName, string description, string boardKind, long folderId, long workspaceId, long templateId,
-            List<string> boardOwnerIds, List<string> boardOwnerTeamIds, List<string> boardSubscriberIds, List<string> boardSubscriberTeamIds, bool empty)
+        public Board CreateBoard(BoardCreationOptions options)
         {
             throw new NotImplementedException();
         }
@@ -441,8 +440,15 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <param name="afterColumnId">The column's unique identifier after which the new column will be inserted</param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public Column CreateColumn(long boardId, string title, string description, string columnType, string defaults, string id, string afterColumnId)
+        public Column CreateColumn(ColumnCreationOptions options)
         {
+            if (!Initialize().IsOk())
+                return null;
+
+            var builder = new GraphQLQueryBuilder("mutation")
+                .AddVariable("$boardId", "ID!");
+
+            /*
             var query = new GraphQLQueryBuilder("mutation")
                 .AddVariable("$boardId", "ID!")
                 .AddVariable("$title", "String!")
@@ -454,7 +460,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 .AddNestedField("create_column",
                     new Dictionary<string, object>
                     {
-                        { "board_Id", "$boardId"  },
+                        { "board_id", "$boardId" },
                         { "title", "$title" },
                         { "description", "$description" },
                         { "column_type", "$columnType" },
@@ -465,8 +471,94 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                     , q => q
                     .AddField("id")
                 ).Build();
+        */
 
-            throw new NotImplementedException();
+            var boardId = options.BoardId;
+            var afterColumnId = options.AfterColumnId;
+
+            //We only want to include properties from options that aren't null.
+            // We want to exclude any propertys from options that are null.
+            // We need to create a new CreateColumnResponse type that maps to a Column
+
+            var optionsProperties = typeof(ColumnCreationOptions).GetProperties();
+            var variables = new Dictionary<string, object>
+            {
+                { "boardId", options.BoardId }
+            };
+
+            var args = new Dictionary<string, object>
+            {
+                { "board_id", "$boardId" }
+            };
+
+            if (options.Title != null)
+            {
+                variables.Add("title", options.Title);
+                builder.AddVariable("$title", "String!");
+                args.Add("title", "$title");
+            }
+
+            if (options.Description != null)
+            {
+                variables.Add("description", options.Description);
+                builder.AddVariable("$description", "String");
+                args.Add("description", "$description");
+            }
+
+            if (options.Id != null)
+            {
+                variables.Add("id", options.Id);
+                builder.AddVariable("$id", "String");
+                args.Add("id", "$id");
+            }
+
+            if (options.AfterColumnId != null)
+            {
+                variables.Add("afterColumnId", options.AfterColumnId);
+                builder.AddVariable("$afterColumnId", "ID");
+                args.Add("after_column_id", "$afterColumnId");
+            }
+
+            if (options.Defaults != null)
+            {
+                variables.Add("defaults", options.Defaults);
+                builder.AddVariable("$defaults", "JSON");
+                args.Add("defaults", "$defaults");
+            }
+
+            if (options.ColumnType != null)
+            {
+                variables.Add("columnType", options.ColumnType);
+                builder.AddVariable("$columnType", "ColumnType!");
+                args.Add("column_type", "$columnType");
+            }
+
+            builder.AddNestedField("create_column", args, q => q
+                    .AddField("id")
+                );
+
+            var query = builder.Build();
+
+            /*
+            var variables = new Dictionary<string, object>
+            {
+                { "boardId", options.BoardId },
+                { "title", options.Title },
+                { "description", options.Description },
+                { "id", options.Id },
+                { "afterColumnId", options.AfterColumnId },
+                { "defaults", options.Defaults },
+                { "columnType", options.ColumnType }
+            };
+            */
+            var res = Query<CreateColumnResponse>(query, variables);
+
+            if (res == null) return null;
+            if (res.Column == null) return null;
+
+            return res.Column;
+
+            //throw new NotImplementedException();
         }
 
         /// <summary>
@@ -510,7 +602,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <param name="createLabelsIfMissing">Create Status/Dropdown labels if they're missing. (Requires permission to change board structure)</param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public Item CreateItem(string itemName, long boardId, string groupId, string columnValues, bool createLabelsIfMissing)
+        public Item CreateItem(ItemCreationOptions options)
         {
             var query = new GraphQLQueryBuilder("mutation")
                 .AddVariable("$itemName", "String!")
@@ -543,7 +635,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <param name="createLabelsIfMissing">Create Status/Dropdown labels if they're missing. (Requires permission to change board structure)</param>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public Item CreateSubitem(long parentItemId, string itemName, string columnValues, bool createLabelsIfMissing)
+        public Item CreateSubitem(SubItemCreationOptions options)
         {
             var query = new GraphQLQueryBuilder("mutation")
                 .AddVariable("$parentItemId", "ID!")

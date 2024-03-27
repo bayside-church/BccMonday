@@ -1,5 +1,6 @@
 ﻿using com.baysideonline.BccMonday.Models;
 using com.baysideonline.BccMonday.Utilities.Api;
+using com.baysideonline.BccMonday.Utilities.Api.Config;
 using com.baysideonline.BccMonday.Utilities.Api.Interfaces;
 using com.baysideonline.BccMonday.Utilities.Api.Schema;
 using com.baysideonline.BccMonday.ViewModels.MondayItemDetail;
@@ -422,7 +423,15 @@ namespace com.baysideonline.BccMonday.Blocks
                 var board = GetBoard(boardId);
                 var newStatus = statusChange == "Approve" ? board.MondayStatusApprovedValue : board.MondayStatusClosedValue;
 
-                var columnValue = api.ChangeColumnValue(boardId, itemId, board.MondayStatusColumnId, newStatus);
+                var options = new ColumnChangeOptions
+                {
+                    BoardId = boardId,
+                    ItemId = itemId,
+                    ColumnId = board.MondayStatusColumnId,
+                    Value = newStatus
+                };
+
+                var columnValue = api.ChangeColumnValue(options);
 
                 if (columnValue == null)
                 {
