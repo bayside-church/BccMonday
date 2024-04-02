@@ -5,6 +5,7 @@ using com.baysideonline.BccMonday.Utilities.Api.Schema;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
+using Rock.Bus.Message;
 using Rock.CheckIn;
 using Rock.Data;
 using Rock.Model;
@@ -149,7 +150,8 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 { "parentUpdateId", parentUpdateId }
             };
 
-            var queryData = Query<CreateUpdateResponse>(query, variables);
+            //List<string> erorrMessages = new List<string>();
+            var queryData = Query<CreateUpdateResponse>(query, out List<string> errorMessages, variables);
             var update = queryData.Update;
             return update;
         }
@@ -199,7 +201,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 { "newValue", options.Value }
             };
 
-            var queryData = Query<ChangeSimpleColumnValueResponse>(query, variables);
+            var queryData = Query<ChangeSimpleColumnValueResponse>(query, out List<string> errorMessages, variables);
             var item = queryData.Item;
             var columnValue = item.ColumnValues[0];
 
@@ -431,15 +433,8 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <summary>
         /// Create a new column in board.
         /// </summary>
-        /// <param name="boardId">The board's unique identifier</param>
-        /// <param name="title">The new column's title</param>
-        /// <param name="description">The new column's description</param>
-        /// <param name="columnType">The type of column to create</param>
-        /// <param name="defaults">The new column's defaults</param>
-        /// <param name="id">The column's user-specified unique identifier</param>
-        /// <param name="afterColumnId">The column's unique identifier after which the new column will be inserted</param>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
+        /// <param name="options">The arguments used to create the Column</param>
+        /// <returns>A newly created Column, or null</returns>
         public Column CreateColumn(ColumnCreationOptions options)
         {
             if (!Initialize().IsOk())
@@ -447,38 +442,6 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
             var builder = new GraphQLQueryBuilder("mutation")
                 .AddVariable("$boardId", "ID!");
-
-            /*
-            var query = new GraphQLQueryBuilder("mutation")
-                .AddVariable("$boardId", "ID!")
-                .AddVariable("$title", "String!")
-                .AddVariable("$description", "String")
-                .AddVariable("$columnType", "ColumnType!")
-                .AddVariable("$defaults", "JSON")
-                .AddVariable("$id", "String")
-                .AddVariable("$afterColumnId", "ID")
-                .AddNestedField("create_column",
-                    new Dictionary<string, object>
-                    {
-                        { "board_id", "$boardId" },
-                        { "title", "$title" },
-                        { "description", "$description" },
-                        { "column_type", "$columnType" },
-                        { "defaults", "$defaults" },
-                        { "id", "$id" },
-                        { "after_column_id", "$afterColumnId" }
-                    }
-                    , q => q
-                    .AddField("id")
-                ).Build();
-        */
-
-            var boardId = options.BoardId;
-            var afterColumnId = options.AfterColumnId;
-
-            //We only want to include properties from options that aren't null.
-            // We want to exclude any propertys from options that are null.
-            // We need to create a new CreateColumnResponse type that maps to a Column
 
             var optionsProperties = typeof(ColumnCreationOptions).GetProperties();
             var variables = new Dictionary<string, object>
@@ -539,26 +502,12 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
             var query = builder.Build();
 
-            /*
-            var variables = new Dictionary<string, object>
-            {
-                { "boardId", options.BoardId },
-                { "title", options.Title },
-                { "description", options.Description },
-                { "id", options.Id },
-                { "afterColumnId", options.AfterColumnId },
-                { "defaults", options.Defaults },
-                { "columnType", options.ColumnType }
-            };
-            */
-            var res = Query<CreateColumnResponse>(query, variables);
+            var res = Query<CreateColumnResponse>(query, out List<string> errorMessages, variables);
 
             if (res == null) return null;
             if (res.Column == null) return null;
 
             return res.Column;
-
-            //throw new NotImplementedException();
         }
 
         /// <summary>
@@ -604,26 +553,91 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <exception cref="NotImplementedException"></exception>
         public Item CreateItem(ItemCreationOptions options)
         {
-            var query = new GraphQLQueryBuilder("mutation")
-                .AddVariable("$itemName", "String!")
-                .AddVariable("$boardId", "ID!")
-                .AddVariable("$groupId", "String")
-                .AddVariable("$columnValues", "JSON")
-                .AddVariable("$createLabelsIfMissing", "Boolean")
-                .AddNestedField("create_item",
-                    new Dictionary<string, object>
-                    {
-                        { "item_name", "$itemName" },
-                        { "board_Id", "$boardId"  },
-                        { "group_id", "$groupId" },
-                        { "column_values", "$columnValues" },
-                        { "create_labels_if_missing", "$createLabelsIfMissing" },
-                    }
-                    , q => q
-                    .AddField("id")
-                ).Build();
+            if (!Initialize().IsOk())
+                return null;
 
-            throw new NotImplementedException();
+            var builder = new GraphQLQueryBuilder("mutation")
+                .AddVariable("$itemName", "String!")
+                .AddVariable("$boardId", "ID!");
+
+            var arguments = new Dictionary<string, object>
+            {
+                { "item_name", "$itemName" },
+                { "board_id", "$boardId" }
+            };
+            var variables = new Dictionary<string, object>
+            {
+                { "itemName", options.Name },
+                { "boardId", options.BoardId }
+            };
+
+            var complexValues = new Dictionary<string, string>();
+            var boardColumns = new List<IColumn>();
+
+            if (options.ColumnValues != null)
+            {
+                
+                arguments.Add("column_values", "$columnValues");
+                builder.AddVariable("$columnValues", "JSON");
+
+                var board = this.GetBoard(options.BoardId);
+                boardColumns = board.Columns.Where(c => c.Type.Equals("status")).ToList();
+                complexValues = options.ColumnValues.Where(c => boardColumns.Any(x => x.Id.Equals(c.Key))).ToDictionary(kv => kv.Key, kv => kv.Value);
+                var leftovers = options.ColumnValues.Except(complexValues).ToDictionary(kv => kv.Key, kv => kv.Value);
+
+                var serializedCV = JsonConvert.SerializeObject(options.ColumnValues);//(leftovers);
+                variables.Add("columnValues", serializedCV);
+                // We should instead create the column values after the item has been created.
+                // For now, lets remove any key-value pair where the columnId is of type "status"
+                // This means we need to check the API for all columns off of a board
+                //      - We have the board Id from the options variable
+                //      - For status type column values, we will try and find the index that matches the Label given
+                // If the Label given appears in the list of possible values, use that Label's index
+                // We will then do a change_simple_column_value for that column with the index.
+                // Hope everything is done!
+            }
+
+            if (options.GroupId != null)
+            {
+                variables.Add("groupId", options.GroupId);
+                arguments.Add("group_id", "$groupId");
+                builder.AddVariable("$groupId", "String");
+            }
+
+            variables.Add("createLabelsIfMissing", options.CreateLabelsIfMissing);
+            arguments.Add("create_labels_if_missing", "$createLabelsIfMissing");
+            builder.AddVariable("$createLabelsIfMissing", "Boolean");
+
+            var query = builder
+                .AddNestedField("create_item", arguments, q => q
+                        .AddField("id")
+                    ).Build();
+
+            var data = Query<CreateItemResponse>(query, out List<string> errorMessages, variables);
+
+            if (data == null) return null;
+            if (data.Item == null) return null;
+
+            //This is where we update the columns manually due to complicated settings
+            foreach(var columnValue in complexValues)
+            {
+                var changeColumnOptions = new ColumnChangeOptions
+                {
+                    BoardId = options.BoardId,
+                    ItemId = data.Item.Id,
+                    ColumnId = columnValue.Key,
+                    Value = columnValue.Value
+                };
+
+                var settings = boardColumns.FirstOrDefault(c => c.Id == columnValue.Key)?.Options ?? "";
+                JObject settings_options = ((JObject)settings);
+                var labels = settings_options["labels"];
+
+                var fakeVariable = 1;
+                //this.ChangeColumnValue(changeColumnOptions);
+            }
+
+            return data.Item;
         }
 
         /// <summary>
@@ -952,7 +966,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 { "assetIds", string.Join(",", ids)}
             };
 
-            var queryData = Query<GetAssetsResponse>(query, variables);
+            var queryData = Query<GetAssetsResponse>(query, out List<string> errorMessages, variables);
             if (queryData == null) return null;
             var assets = queryData.Assets;
             if (assets.Count <= 0 ) return null;
@@ -989,7 +1003,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 { "boardId", id }
             };
 
-            var queryData = Query<GetBoardsResponse>(query, variables);
+            var queryData = Query<GetBoardsResponse>(query, out List<string> errorMessages, variables);
             if (queryData == null) return null;
             var boards = queryData.Boards;
 
@@ -1026,7 +1040,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 { "boardId", boardId }
             };
 
-            var queryData = Query<GetBoardsResponse>(query, variables);
+            var queryData = Query<GetBoardsResponse>(query, out List<string> errorMessages, variables);
             var board = queryData.Boards[0];
             var workspace = board.Workspace;
             return workspace.Name ?? null;
@@ -1049,7 +1063,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                     .AddField("type")
                 ).Build();
 
-            var queryData = Query<GetBoardsResponse>(query);
+            var queryData = Query<GetBoardsResponse>(query, out List<string> errorMessages);
             if (queryData == null) return null;
             var boards = queryData.Boards;
             boards = boards.Where(b => b.BoardType == "board").ToList();
@@ -1101,7 +1115,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 { "itemId", id }
             };
 
-            var queryData = Query<GetItemsResponse>(query, variables);
+            var queryData = Query<GetItemsResponse>(query, out List<string> errorMessages, variables);
             if (queryData == null) return null;
             var items = queryData.Items;
 
@@ -1168,7 +1182,7 @@ List<Dictionary<string, object>> columnsList = itemsList.Select(item =>
                 { "columnId", columnValues[0].ColumnId }
             };
 
-            var initialData = Query<GetItemsByPageResponse>(query, variables);
+            var initialData = Query<GetItemsByPageResponse>(query, out List<string> errorMessages, variables);
             if (initialData == null) return allItems;
             if (initialData.ItemsPage == null) return allItems;
             var itemsPage = initialData.ItemsPage;
@@ -1226,7 +1240,7 @@ List<Dictionary<string, object>> columnsList = itemsList.Select(item =>
                 { "emailColumnId", emailMatchColumnId },
                 { "statusColumnId", statusColumnId }
             };
-            var initialQueryData = Query <GetBoardsResponse> (query, variables);
+            var initialQueryData = Query <GetBoardsResponse> (query, out List<string> errorMessages, variables);
             if (initialQueryData == null) return allItems;
             if (initialQueryData.Boards == null) return allItems;
             var board = initialQueryData.Boards[0];
@@ -1274,7 +1288,7 @@ List<Dictionary<string, object>> columnsList = itemsList.Select(item =>
                     { "statusColumnId", statusColumnId }
                 };
 
-                var nextItemsPageData = Query<GetNextItemsPageResponse>(nextItemsQuery, variables);
+                var nextItemsPageData = Query<GetNextItemsPageResponse>(nextItemsQuery, out List<string> extraErrorMessages, variables);
                 if (nextItemsPageData == null) return allItems;
                 var nextItemsPage = nextItemsPageData.NextItemsPage;
                 cursor = nextItemsPage.Cursor;
@@ -1288,8 +1302,9 @@ List<Dictionary<string, object>> columnsList = itemsList.Select(item =>
 
         #endregion
         #region private methods
-        private T Query<T>(string query, object variables = null)
+        private T Query<T>(string query, out List<string> errorMessages, object variables = null)
         {
+            errorMessages = new List<string>();
             if (_isInitialized)
             {
                 _request.AddJsonBody(new { query, variables });
@@ -1314,6 +1329,7 @@ List<Dictionary<string, object>> columnsList = itemsList.Select(item =>
                 }
                 else if (res.StatusCode == HttpStatusCode.InternalServerError)
                 {
+                    errorMessages.Add(res.Content);
                     string errorMessage = $"Monday.com is having technical issues. Your API Request did not go through. Query: {query}";
                     ExceptionLogService.LogException(new Exception(errorMessage, new Exception("BccMonday")));
                 }

@@ -193,7 +193,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Config
         /// <summary>
         /// The column values of the new item.
         /// </summary>
-        public string ColumnValues { get; set; }
+        public Dictionary<string, string> ColumnValues { get; set; }
 
         /// <summary>
         /// Creates status/dropdown labels if they are missing (requires permission to change the board structure).
