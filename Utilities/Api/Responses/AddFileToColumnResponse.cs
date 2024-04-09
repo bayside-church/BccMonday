@@ -4,11 +4,11 @@ using Newtonsoft.Json;
 namespace com.baysideonline.BccMonday.Utilities.Api.Responses
 {
     /// <summary>
-    /// Add a file to an update Response
+    /// Add a file to a column Response
     /// </summary>
-    public class AddFileToUpdateResponse
+    public class AddFileToColumnResponse
     {
-        [JsonProperty("add_file_to_update")]
+        [JsonProperty("add_file_to_column")]
         public Asset Asset { get; set; }
     }
 }
