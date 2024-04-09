@@ -20,18 +20,22 @@ namespace com.baysideonline.BccMonday.Workflows
     [Export(typeof(ActionComponent))]
     [ExportMetadata("ComponentName", "Create Item")]
 
-    [TextField(
+    [WorkflowTextOrAttribute(
         "Name",
-        Description = "The item's name.",
+        "Attribute Value",
+        Description = "The item's name or an attribute that contains the item's name.",
         Key = "Name",
         IsRequired = true,
+        FieldTypeClassNames = new string[] { "Rock.Field.Types.TextFieldType" },
         Order = 1
         )]
-    [TextField(
+    [WorkflowTextOrAttribute(
         "Board Id",
-        Description = "The item's Board.",
+        "Attribute Value",
+        Description = "The item's Board Id or an attribute that contains the Board Id.",
         Key = "BoardId",
         IsRequired = true,
+        FieldTypeClassNames = new string[] { "Rock.Field.Types.TextFieldType" },
         Order = 2
         )]
     [PersonField(
@@ -52,17 +56,16 @@ namespace com.baysideonline.BccMonday.Workflows
     {
         public override bool Execute(RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages)
         {
-
-            // We create an item with some values.
-            // The values are mostly going to be the same except for the column values
-            // the item will always have a board Id and a name.
-            // the other column values will probably just be key-value pairs
             errorMessages = new List<string>();
 
-            var name = GetAttributeValue(action, "Name");
-            var boardId = GetAttributeValue(action, "BoardId");
+            var mergeFields = GetMergeFields(action);
+            var name = GetAttributeValue(action, "Name").ResolveMergeFields(mergeFields);
+            var boardId = GetAttributeValue(action, "BoardId").ResolveMergeFields(mergeFields);
             var requestor = GetAttributeValue(action, "Requestor");
-            var columnValues = GetAttributeValue(action, "ColumnValues").AsDictionaryOrNull();
+            var columnValuesDict = GetAttributeValue(action, "ColumnValues").AsDictionaryOrNull();
+
+            var columnValues = columnValuesDict.Select(c => new { c.Key, Value = c.Value.ResolveMergeFields(mergeFields) })
+                .ToDictionary(k => k.Key, k => k.Value);
 
             var serializedCV = JsonConvert.SerializeObject(columnValues);
 
@@ -78,7 +81,6 @@ namespace com.baysideonline.BccMonday.Workflows
 
             var item = api.CreateItem(options);
             return true;
-            throw new NotImplementedException();
         }
     }
 }
