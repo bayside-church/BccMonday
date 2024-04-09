@@ -321,7 +321,8 @@ namespace com.baysideonline.BccMonday.Blocks
                         Id = newUpdate.Id.ToString(),
                         TextBody = newUpdate.TextBody.ToString(),
                         CreatorName = newUpdate.CreatorName,
-                        CreatedAt = newUpdate.CreatedAt.ToString()
+                        CreatedAt = newUpdate.CreatedAt.ToString(),
+                        Files = new List<MondayAssetBag>()
                     };
 
                     if (fileUploaded.HasValue)

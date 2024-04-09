@@ -1,6 +1,6 @@
-System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButton.obs', '@Obsidian/Controls/textBox.obs'], (function (exports) {
+System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButton.obs', '@Obsidian/Controls/textBox.obs', '@Obsidian/Controls/fileUploader.obs'], (function (exports) {
   'use strict';
-  var createElementVNode, defineComponent, openBlock, createElementBlock, toDisplayString, Fragment, createTextVNode, inject, ref, renderList, createBlock, unref, createCommentVNode, withCtx, onMounted, watch, normalizeStyle, provide, createVNode, useInvokeBlockAction, useConfigurationValues, useReloadBlock, onConfigurationValuesChanged, RockButton, TextBox;
+  var createElementVNode, defineComponent, openBlock, createElementBlock, toDisplayString, Fragment, createTextVNode, inject, ref, renderList, createBlock, unref, createCommentVNode, withCtx, onMounted, watch, normalizeStyle, provide, createVNode, useInvokeBlockAction, useConfigurationValues, useReloadBlock, onConfigurationValuesChanged, RockButton, TextBox, FileUploader;
   return {
     setters: [function (module) {
       createElementVNode = module.createElementVNode;
@@ -31,6 +31,8 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
       RockButton = module["default"];
     }, function (module) {
       TextBox = module["default"];
+    }, function (module) {
+      FileUploader = module["default"];
     }],
     execute: (function () {
 
@@ -526,6 +528,9 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
                 args: getItemDetailArgs(),
                 text: updateText
               };
+              if (fileUploadValue && fileUploadValue.value) {
+                blockActionArgs.fileUploaded = fileUploadValue.value.value;
+              }
               var response = yield invokeBlockAction("SaveUpdate", blockActionArgs);
               if (response.data) {
                 var update = response.data;
@@ -641,7 +646,13 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
               onClick: toggleVisibility,
               class: "btn btn-secondary",
               textContent: 'Cancel'
-            })]), createCommentVNode(" <div>\r\n                            <FileUploader v-model=\"fileUploadValue\" :uploadAsTemporary=\"true\" uploadButtonText=\"Upload\" :showDeleteButton=\"true\" />\r\n                        </div> ")])], 64)) : createCommentVNode("v-if", true)]), (openBlock(true), createElementBlock(Fragment, null, renderList(unref(item).updates, update => {
+            })]), createElementVNode("div", null, [createVNode(unref(FileUploader), {
+              modelValue: fileUploadValue.value,
+              "onUpdate:modelValue": _cache[3] || (_cache[3] = $event => fileUploadValue.value = $event),
+              uploadAsTemporary: true,
+              uploadButtonText: "Upload",
+              showDeleteButton: true
+            }, null, 8, ["modelValue"])])])], 64)) : createCommentVNode("v-if", true)]), (openBlock(true), createElementBlock(Fragment, null, renderList(unref(item).updates, update => {
               return openBlock(), createBlock(unref(script$5), {
                 key: update.Id,
                 update: update

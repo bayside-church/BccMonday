@@ -39,9 +39,9 @@
                             <RockButton id="bbtnNewUpdateSave" @click="saveUpdate" class="btn btn-primary" v-text="'Save'"/>
                             <RockButton id="bbtnNewUpdateCancel" @click="toggleVisibility" class="btn btn-secondary" v-text="'Cancel'"/>
                         </div>
-                        <!-- <div>
+                        <div>
                             <FileUploader v-model="fileUploadValue" :uploadAsTemporary="true" uploadButtonText="Upload" :showDeleteButton="true" />
-                        </div> -->
+                        </div>
                     </div>
                 </template>
             </div>
@@ -147,11 +147,11 @@ async function saveUpdate(): Promise<void> {
         text: updateText,
     }
 
-    /*
+
     if (fileUploadValue && fileUploadValue.value) {
         blockActionArgs.fileUploaded = fileUploadValue.value.value;
     }
-    */
+
     const response = await invokeBlockAction<MondayUpdateBag>("SaveUpdate", blockActionArgs);
 
     if (response.data) {
