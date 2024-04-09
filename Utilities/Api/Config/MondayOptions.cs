@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -9,6 +10,33 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Config
 {
     internal class MondayOptions
     {
+    }
+
+    public class StatusColumnOptions
+    {
+        [JsonProperty("done_colors")]
+        public List<int> DoneColors { get; set; }
+
+        [JsonProperty("labels")]
+        public Dictionary<int, string> Labels { get; set; }
+
+        [JsonProperty("labels_positions_v2")]
+        public Dictionary<int, string> LabelsPositions { get; set; }
+
+        [JsonProperty("labels_colors")]
+        public Dictionary<int, LabelColor> LabelsColor { get; set; }
+    }
+
+    public class  LabelColor
+    {
+        [JsonProperty("color")]
+        public string Color { get; set; }
+
+        [JsonProperty("border")]
+        public string Border { get; set; }
+
+        [JsonProperty("var_name")]
+        public string VarName { get; set; }
     }
 
     public class ColumnCreationOptions
