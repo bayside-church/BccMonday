@@ -1,16 +1,16 @@
 ﻿using com.baysideonline.BccMonday.Utilities.Api;
 using com.baysideonline.BccMonday.Utilities.Api.Config;
+using com.baysideonline.BccMonday.Utilities.Api.Schema;
+using Rock;
 using Rock.Attribute;
 using Rock.Data;
 using Rock.Model;
 using Rock.Workflow;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace com.baysideonline.BccMonday.Workflows
 {
@@ -19,38 +19,53 @@ namespace com.baysideonline.BccMonday.Workflows
     [Export(typeof(ActionComponent))]
     [ExportMetadata("ComponentName", "Create Column")]
 
-    [TextField(
+    [WorkflowTextOrAttribute(
         "Board Id",
+        "Attribute Value",
         Description = "The Board Id to create the column.",
         Key = "BoardId",
         IsRequired = true,
+        FieldTypeClassNames = new string[] { "Rock.Field.Types.TextFieldType" },
         Order = 1
         )]
-    [TextField(
+    [WorkflowTextOrAttribute(
         "Column Id",
-        Description = "The custom Id of the new Column. If it is empty, then a random Id will be generated.",
+        "Attribute Value",
+        Description = "The custom Id of the new Column. If it is empty, then a random Id will be generated." +
+        "\n- [1-20] characters in length (inclusive)\r\n" +
+        "- Only lowercase letters (a-z) and underscores (_)\r\n" +
+        "- Must be unique (no other column on the board can have the same ID)\r\n" +
+        "- Can't reuse column IDs, even if the column has been deleted from the board\r\n" +
+        "- Can't be null, blank, or an empty string   ",
         Key = "ColumnId",
         IsRequired = false,
+        FieldTypeClassNames = new string[] { "Rock.Field.Types.TextFieldType" },
         Order = 2
         )]
-    [TextField(
+    [WorkflowTextOrAttribute(
         "Title",
+        "Attribute Value",
         Description = "The new column's title.",
         Key = "Title",
+        FieldTypeClassNames = new string[] { "Rock.Field.Types.TextFieldType" },
         Order = 3
         )]
-    [TextField(
+    [WorkflowTextOrAttribute(
         "Description",
+        "Attribute Value",
         Description = "The new column's description.",
         Key = "Description",
+        FieldTypeClassNames = new string[] { "Rock.Field.Types.TextFieldType" },
         Order = 4
         )]
-    [TextField(
+    [WorkflowTextOrAttribute(
         "Column Type",
+        "Attribute Value",
         Description = "The new column's Column Type.",
         Key = "ColumnType",
-        Order = 5,
-        DefaultValue = "text"
+        DefaultValue = "text",
+        FieldTypeClassNames = new string[] { "Rock.Field.Types.TextFieldType" },
+        Order = 5
         )]
 
     public class CreateColumn : ActionComponent
@@ -76,6 +91,14 @@ namespace com.baysideonline.BccMonday.Workflows
                 ColumnType = columnType
             };
 
+            var isValid = IsValidColumn(columnId, boardId);
+
+            if (!isValid)
+            {
+                errorMessages.Add("Could not create the column in Monday.com due to column Id constraints.");
+                return false;
+            }
+
             var column = api.CreateColumn(options);
 
             if (column != null)
@@ -88,6 +111,23 @@ namespace com.baysideonline.BccMonday.Workflows
             }
 
             return false;
+        }
+
+        public bool IsValidColumn(string columnId, string boardId)
+        {
+            var existingColumnIds = new MondayApi().GetBoard(long.Parse(boardId)).Columns.Select(c => c.Id).ToList();
+            var regex = new Regex("^[a-z_]+$");
+            var hasBadCharacters = !regex.IsMatch(columnId);
+            var isExistingColumnId = existingColumnIds.Contains(columnId);
+            var isIncorrectLength = columnId.Length < 1 || columnId.Length > 20;
+            var isBlankOrEmpty = columnId.IsNullOrWhiteSpace();
+
+            if (hasBadCharacters || isExistingColumnId || isIncorrectLength || isBlankOrEmpty)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }
