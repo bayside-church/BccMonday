@@ -9,12 +9,14 @@ using Rock.Bus.Message;
 using Rock.CheckIn;
 using Rock.Data;
 using Rock.Model;
+using Rock.SystemGuid;
 using Rock.Web.Cache;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 
 namespace com.baysideonline.BccMonday.Utilities.Api
 {
@@ -46,6 +48,12 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             if (!MondayApiUrls.Urls.TryGetValue(apiType, out _apiUrl))
             {
                 throw new ArgumentException("Invalid API Type specified", nameof(apiType));
+            }
+
+            var init = Initialize();
+            if (!init.IsOk())
+            {
+                throw new Exception(init.Message);
             }
         }
 
@@ -96,8 +104,6 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         {
             if (!Initialize().IsOk())
                 return null;
-
-
             
             var query = parentUpdateId != null ?
                 new GraphQLQueryBuilder("mutation")
@@ -150,7 +156,6 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 { "parentUpdateId", parentUpdateId }
             };
 
-            //List<string> erorrMessages = new List<string>();
             var queryData = Query<CreateUpdateResponse>(query, out List<string> errorMessages, variables);
             var update = queryData.Update;
             return update;
@@ -208,7 +213,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             return columnValue as StatusColumnValue;
         }
 
-        public Asset AddFileToUpdate(long updateId, BinaryFile binaryFile)
+        public Asset AddFileToUpdate(long updateId, Rock.Model.BinaryFile binaryFile)
         {
             if (!Initialize().IsOk())
             {
@@ -221,7 +226,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             var fileSize = binaryFile.FileSize;
             const long MAX_BYTES = 100000000;
 
-            if (fileSize > MAX_BYTES)
+            if (!fileSize.HasValue || fileSize.Value > MAX_BYTES)
             {
                 return null;
             }
@@ -232,11 +237,11 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
                 var query = new GraphQLQueryBuilder("mutation")
                     .AddVariable("$file", "File!")
-                    .AddVariable("$updateId", "ID!")
                     .AddNestedField("add_file_to_update",
                         new Dictionary<string, object>
                         {
-                            { "update_id", "$updateId" }
+                            { "update_id", updateId },
+                            { "file", "$file" }
                         }
                         , q => q
                         .AddField("id")
@@ -259,27 +264,20 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             }
         }
 
-        public Asset AddFileToColumn(long itemId, string columnId, BinaryFile file)
-        {
-            throw new NotImplementedException();
-        }
-
-        /*
-        private Asset AddFileToEntity(Dictionary<string, object> variables, string query, BinaryFile file, Type responseType)
+        public Asset AddFileToColumn(long itemId, string columnId, Rock.Model.BinaryFile binaryFile)
         {
             if (!Initialize().IsOk())
             {
-                //Log error or throw exception
                 return null;
             }
 
-            var publicApplicationRoot = GlobalAttributesCache.Get().GetValue("PublicApplicationRoot");
-            var filePath = new Uri(Path.Combine(publicApplicationRoot, $"GetFile.ashx={file.Id}"));
-            var fileName = file.FileName;
-            var fileSize = file.FileSize;
-            const long MaxBytes = 100_000_000;
+            var filePath = new Uri(GlobalAttributesCache.Get().GetValue("PublicApplicationRoot"))
+                + $"GetFile.ashx?id={binaryFile.Id}";
+            var fileName = binaryFile.FileName;
+            var fileSize = binaryFile.FileSize;
+            const long MAX_BYTES = 100000000;
 
-            if (!fileSize.HasValue || fileSize.Value > MaxBytes)
+            if (!fileSize.HasValue || fileSize.Value > MAX_BYTES)
             {
                 return null;
             }
@@ -287,12 +285,37 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             using (WebClient webClient = new WebClient())
             {
                 var bytes = webClient.DownloadData(filePath);
-                variables.Add("file", bytes);
 
-                var data = FileQuery<>(query,)
+                var query = new GraphQLQueryBuilder("mutation")
+                    .AddVariable("$file", "File!")
+                    .AddNestedField("add_file_to_column",
+                        new Dictionary<string, object>
+                        {
+                            { "item_id", itemId },
+                            { "column_id", @"""" + columnId + @"""" },
+                            { "file", "$file" }
+                        },
+                        q => q
+                        .AddField("id")
+                        .AddField("file_size")
+                        .AddField("name")
+                        .AddField("public_url")
+                        .AddField("url_thumbnail")
+                    ).Build();
+
+                var variables = new Dictionary<string, object>
+                    {
+                        { "itemId", itemId },
+                        { "columnId", columnId }
+                    };
+
+                var data = FileQuery<AddFileToColumnResponse>(query, bytes, fileName, variables);
+                if (data == null) return null;
+                var asset = data.Asset;
+
+                return asset;
             }
         }
-        */
 
         public MondayUser AddUserToBoard(long boardId, long userId, string kind)
         {
@@ -572,29 +595,20 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             };
 
             var complexValues = new Dictionary<string, string>();
-            var boardColumns = new List<IColumn>();
+            var fileColumns = new List<IColumn>();
 
-            if (options.ColumnValues != null)
+            if (options.ColumnValues != null && options.ColumnValues.Count > 0)
             {
-                
                 arguments.Add("column_values", "$columnValues");
                 builder.AddVariable("$columnValues", "JSON");
 
-                var board = this.GetBoard(options.BoardId);
-                boardColumns = board.Columns.Where(c => c.Type.Equals("status")).ToList();
-                complexValues = options.ColumnValues.Where(c => boardColumns.Any(x => x.Id.Equals(c.Key))).ToDictionary(kv => kv.Key, kv => kv.Value);
+                var board = (new MondayApi()).GetBoard(options.BoardId);
+                fileColumns = board.Columns.Where(c => c.Type.Equals("file")).ToList();
+                complexValues = options.ColumnValues.Where(c => fileColumns.Any(x => x.Id.Equals(c.Key))).ToDictionary(kv => kv.Key, kv => kv.Value);
                 var leftovers = options.ColumnValues.Except(complexValues).ToDictionary(kv => kv.Key, kv => kv.Value);
 
-                var serializedCV = JsonConvert.SerializeObject(options.ColumnValues);//(leftovers);
+                var serializedCV = JsonConvert.SerializeObject(leftovers);
                 variables.Add("columnValues", serializedCV);
-                // We should instead create the column values after the item has been created.
-                // For now, lets remove any key-value pair where the columnId is of type "status"
-                // This means we need to check the API for all columns off of a board
-                //      - We have the board Id from the options variable
-                //      - For status type column values, we will try and find the index that matches the Label given
-                // If the Label given appears in the list of possible values, use that Label's index
-                // We will then do a change_simple_column_value for that column with the index.
-                // Hope everything is done!
             }
 
             if (options.GroupId != null)
@@ -618,6 +632,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             if (data == null) return null;
             if (data.Item == null) return null;
 
+            
             //This is where we update the columns manually due to complicated settings
             foreach(var columnValue in complexValues)
             {
@@ -629,13 +644,10 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                     Value = columnValue.Value
                 };
 
-                var settings = boardColumns.FirstOrDefault(c => c.Id == columnValue.Key)?.Options ?? "";
-                JObject settings_options = ((JObject)settings);
-                var labels = settings_options["labels"];
-
-                var fakeVariable = 1;
-                //this.ChangeColumnValue(changeColumnOptions);
+                var binaryFile = new BinaryFileService(new RockContext()).Get(columnValue.Value);
+                var uploadedAsset = new MondayApi(MondayApiType.File).AddFileToColumn(data.Item.Id, columnValue.Key, binaryFile);
             }
+            
 
             return data.Item;
         }
@@ -1188,8 +1200,47 @@ List<Dictionary<string, object>> columnsList = itemsList.Select(item =>
             var itemsPage = initialData.ItemsPage;
             if (itemsPage.Items == null) return allItems;
             var items = itemsPage.Items.ConvertAll(i => (Item)i);
-            //var cursor = initialData.Cursor;
+            var cursor = itemsPage.Cursor;
             allItems.AddRange(items);
+
+            while (!string.IsNullOrWhiteSpace(cursor))
+            {
+                var nextItemsQuery = new GraphQLQueryBuilder()
+                    .AddVariable("$cursor", "String!")
+                    .AddNestedField("next_items_page",
+                        new Dictionary<string, object>
+                        {
+                        { "limit", 500 },
+                        { "cursor", "$cursor" }
+                        }
+                        , q => q
+                        .AddField("cursor")
+                        .AddNestedField("items", q1 => q1
+                            .AddField("id")
+                            .AddField("name")
+                            .AddField("created_at")
+                            .AddNestedField("column_values", q2 => q2
+                                .ColumnValueProps()
+                                .AddNestedField("column", q3 => q3.ColumnProps())
+                                .MirrorValueFragment()
+                                .StatusValueFragment()
+                            )
+                        )
+                    ).Build();
+
+                var nextItemsVariables = new Dictionary<string, object>
+                {
+                    { "cursor", cursor }
+                };
+
+                var nextItemsPageData = new MondayApi().Query<GetNextItemsPageResponse>(nextItemsQuery, out List<string> extraErrorMessages, nextItemsVariables);
+                if (nextItemsPageData == null) return allItems;
+                var nextItemsPage = nextItemsPageData.NextItemsPage;
+                cursor = nextItemsPage.Cursor;
+
+                var nextItems = nextItemsPage.Items.ConvertAll(i => (Item)i);
+                allItems.AddRange(nextItems);
+            }
 
             return allItems;
         }
@@ -1288,7 +1339,7 @@ List<Dictionary<string, object>> columnsList = itemsList.Select(item =>
                     { "statusColumnId", statusColumnId }
                 };
 
-                var nextItemsPageData = Query<GetNextItemsPageResponse>(nextItemsQuery, out List<string> extraErrorMessages, variables);
+                var nextItemsPageData = new MondayApi().Query<GetNextItemsPageResponse>(nextItemsQuery, out List<string> extraErrorMessages, variables);
                 if (nextItemsPageData == null) return allItems;
                 var nextItemsPage = nextItemsPageData.NextItemsPage;
                 cursor = nextItemsPage.Cursor;
@@ -1341,13 +1392,16 @@ List<Dictionary<string, object>> columnsList = itemsList.Select(item =>
         private T FileQuery<T>(string query, byte[] bytes, string fileName, object variables = null)
         {
             _request.AddHeader("Content-Type", "multipart/form-data");
-            _request.AddJsonBody(new { query, variables });
+            _request.AddParameter("query", query);
             _request.AddFile("variables[file]", bytes, fileName);
-            var response = _client.Execute(_request);
+            var response = _client.Post(_request);
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                var queryData = JsonConvert.DeserializeObject<GraphQLResponse<T>>(response.Content);
+                var content = response.Content;
+                ExceptionLogService.LogException(new Exception("BccMonday", new Exception("content: " + content)));
+
+                var queryData = JsonConvert.DeserializeObject<GraphQLResponse<T>>(content);
 
                 if (queryData.Data != null)
                 {
@@ -1363,40 +1417,6 @@ List<Dictionary<string, object>> columnsList = itemsList.Select(item =>
             {
                 string errorMessage = $"Monday.com is having technical issues. Your API Request did not go through. Query: {query}";
                 ExceptionLogService.LogException(new Exception(errorMessage, new Exception("BccMonday")));
-            }
-
-            return default(T);
-        }
-
-        private T Mutation<T>(string query)
-        {
-            if (_isInitialized)
-            {
-                _request.AddJsonBody(new { query });
-                _request.AddHeader("API-Version", "2023-10");
-
-                var res = _client.Post(_request);
-
-                if (res.StatusCode == HttpStatusCode.OK)
-                {
-                    var content = res.Content;
-                    var queryData = JsonConvert.DeserializeObject<GraphQLResponse<T>>(content);
-
-                    if (queryData.Data != null)
-                    {
-                        return queryData.Data;
-                    }
-                    else if (queryData.Errors != null && queryData.Errors.Count > 0)
-                    {
-                        string errorMessage = queryData.Errors[0].Message;
-                        ExceptionLogService.LogException(new Exception($"{errorMessage} | query: {query}", new Exception("BccMonday")));
-                    }
-                }
-                else if (res.StatusCode == HttpStatusCode.InternalServerError)
-                {
-                    string errorMessage = $"Monday.com is having technical issues. Your API Request did not go through. Query: {query}";
-                    ExceptionLogService.LogException(new Exception(errorMessage, new Exception("BccMonday")));
-                }
             }
 
             return default(T);
