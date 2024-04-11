@@ -572,12 +572,13 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         /// <param name="groupId">The group's unique identifier</param>
         /// <param name="columnValues">The column values of the new item</param>
         /// <param name="createLabelsIfMissing">Create Status/Dropdown labels if they're missing. (Requires permission to change board structure)</param>
-        /// <returns></returns>
-        /// <exception cref="NotImplementedException"></exception>
+        /// <returns>A Monday.com Item or null</returns>
         public Item CreateItem(ItemCreationOptions options)
         {
             if (!Initialize().IsOk())
+            {
                 return null;
+            }
 
             var builder = new GraphQLQueryBuilder("mutation")
                 .AddVariable("$itemName", "String!")
@@ -602,12 +603,33 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 arguments.Add("column_values", "$columnValues");
                 builder.AddVariable("$columnValues", "JSON");
 
-                var board = (new MondayApi()).GetBoard(options.BoardId);
+                var board = new MondayApi().GetBoard(options.BoardId);
                 fileColumns = board.Columns.Where(c => c.Type.Equals("file")).ToList();
+                var emailColumns = board.Columns.Where(c => c.Type.Equals("email")).ToList();
                 complexValues = options.ColumnValues.Where(c => fileColumns.Any(x => x.Id.Equals(c.Key))).ToDictionary(kv => kv.Key, kv => kv.Value);
                 var leftovers = options.ColumnValues.Except(complexValues).ToDictionary(kv => kv.Key, kv => kv.Value);
 
-                var serializedCV = JsonConvert.SerializeObject(leftovers);
+                var processedLeftovers = leftovers.ToDictionary(
+                    kv => kv.Key,
+                    kv =>
+                    {
+                        var columnId = kv.Key;
+                        var columnValue = kv.Value;
+
+                        // Check if this column ID corresponds to an email column
+                        var matchingEmailColumn = emailColumns.FirstOrDefault(c => c.Id.Equals(columnId));
+                        if (matchingEmailColumn != null)
+                        {
+                            return $"{ kv.Value } { kv.Value }";
+                        }
+                        else
+                        {
+                            // If it's not an email column, just return the original value
+                            return columnValue;
+                        }
+                    });
+
+                var serializedCV = JsonConvert.SerializeObject(processedLeftovers);
                 variables.Add("columnValues", serializedCV);
             }
 
@@ -624,16 +646,16 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
             var query = builder
                 .AddNestedField("create_item", arguments, q => q
-                        .AddField("id")
-                    ).Build();
+                    .AddField("id")
+                    .AddField("name")
+                    .AddField("created_at")
+                ).Build();
 
             var data = Query<CreateItemResponse>(query, out List<string> errorMessages, variables);
 
             if (data == null) return null;
             if (data.Item == null) return null;
 
-            
-            //This is where we update the columns manually due to complicated settings
             foreach(var columnValue in complexValues)
             {
                 var changeColumnOptions = new ColumnChangeOptions
@@ -647,7 +669,6 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 var binaryFile = new BinaryFileService(new RockContext()).Get(columnValue.Value);
                 var uploadedAsset = new MondayApi(MondayApiType.File).AddFileToColumn(data.Item.Id, columnValue.Key, binaryFile);
             }
-            
 
             return data.Item;
         }
@@ -1375,6 +1396,7 @@ List<Dictionary<string, object>> columnsList = itemsList.Select(item =>
                     else if (queryData.Errors != null && queryData.Errors.Count > 0)
                     {
                         string errorMessage = queryData.Errors[0].Message;
+                        errorMessages.Add(errorMessage);
                         ExceptionLogService.LogException(new Exception($"{errorMessage} | query: {query}", new Exception("BccMonday")));
                     }
                 }
