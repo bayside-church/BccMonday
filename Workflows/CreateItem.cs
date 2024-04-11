@@ -51,6 +51,33 @@ namespace com.baysideonline.BccMonday.Workflows
         Key = "ColumnValues",
         Order = 4
         )]
+    [WorkflowAttribute(
+        "Item Id Attribute",
+        "An optional attribute to set to the Id of the Monday.com Item.",
+        false,
+        "",
+        "",
+        Key = "ItemIdResultAttribute",
+        Order = 5
+        )]
+    [WorkflowAttribute(
+        "Item Attribute",
+        "An optional attribute to set to the JSON value of the Monday.com Item.",
+        false,
+        "",
+        "",
+        Key = "ItemResultAttribute",
+        Order = 6
+        )]
+    [BooleanField(
+        "Continue on Error",
+        "Should processing continue even if a Monday.com API error occurrs?",
+        false,
+        "",
+        Key = "ContinueOnError",
+        Order = 7
+        )]
+
 
     public class CreateItem : ActionComponent
     {
@@ -80,7 +107,38 @@ namespace com.baysideonline.BccMonday.Workflows
             var api = new MondayApi();
 
             var item = api.CreateItem(options);
-            return true;
+
+            if (item != null)
+            {
+                action.AddLogEntry($"Monday.com Item({ item.Id }) has been created.");
+                var itemId = SetWorkflowAttributeValue(action, "ItemIdResultAttribute", item.Id);
+                var itemResult = SetWorkflowAttributeValue(action, "ItemResultAttribute", JsonConvert.SerializeObject(item));
+
+                if (itemId != null)
+                {
+                   action.AddLogEntry($"Set {itemId.Name} attribute to {item.Id}");
+                }
+
+                if (itemResult != null)
+                {
+                    action.AddLogEntry($"Set {itemResult.Name} attribute to {JsonConvert.SerializeObject(item)}");
+                }
+                return true;
+            }
+            else
+            {
+                var error = "Could not create Monday.com Item";
+                action.AddLogEntry(error);
+                errorMessages.Add(error);
+
+                if (!GetAttributeValue(action, "ContinueOnError").AsBoolean())
+                {
+                    return false;
+                }
+
+                return true;
+
+            }
         }
     }
 }
