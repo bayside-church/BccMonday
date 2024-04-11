@@ -73,7 +73,6 @@ namespace com.baysideonline.BccMonday.Workflows
         public override bool Execute(RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages)
         {
             errorMessages = new List<string>();
-            
 
             var boardId = GetAttributeValue(action, "BoardId");
             var title = GetAttributeValue(action, "Title");
@@ -91,7 +90,7 @@ namespace com.baysideonline.BccMonday.Workflows
                 ColumnType = columnType
             };
 
-            var isValid = IsValidColumn(columnId, boardId);
+            var isValid = IsValidColumn(columnId, boardId, errorMessages);
 
             if (!isValid)
             {
@@ -103,17 +102,17 @@ namespace com.baysideonline.BccMonday.Workflows
 
             if (column != null)
             {
+                action.AddLogEntry($"Monday.com Column ({columnId}) has been created for Board {boardId}");
                 return true;
             }
             else
             {
                 errorMessages.Add("Could not create the column in Monday.com");
+                return false;
             }
-
-            return false;
         }
 
-        public bool IsValidColumn(string columnId, string boardId)
+        public bool IsValidColumn(string columnId, string boardId, List<string> errorMessages)
         {
             var existingColumnIds = new MondayApi().GetBoard(long.Parse(boardId)).Columns.Select(c => c.Id).ToList();
             var regex = new Regex("^[a-z_]+$");
@@ -121,6 +120,26 @@ namespace com.baysideonline.BccMonday.Workflows
             var isExistingColumnId = existingColumnIds.Contains(columnId);
             var isIncorrectLength = columnId.Length < 1 || columnId.Length > 20;
             var isBlankOrEmpty = columnId.IsNullOrWhiteSpace();
+
+            if (hasBadCharacters)
+            {
+                errorMessages.Add($"The provided Column Id ({columnId}) can only contain lowercase letters and underscores.");
+            }
+
+            if (isExistingColumnId)
+            {
+                errorMessages.Add($"The provided Column Id ({columnId}) already exists for the Monday.com Board ({ boardId })");
+            }
+
+            if (isIncorrectLength)
+            {
+                errorMessages.Add($"The provided Column Id ({columnId}) can only be between 1-20 characters (inclusive). Given length is {columnId.Length}");
+            }
+
+            if (isBlankOrEmpty)
+            {
+                errorMessages.Add("The provided Column Id is blank or empty.");
+            }
 
             if (hasBadCharacters || isExistingColumnId || isIncorrectLength || isBlankOrEmpty)
             {
