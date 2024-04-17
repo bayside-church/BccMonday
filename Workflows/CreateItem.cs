@@ -38,11 +38,13 @@ namespace com.baysideonline.BccMonday.Workflows
         FieldTypeClassNames = new string[] { "Rock.Field.Types.TextFieldType" },
         Order = 2
         )]
-    [PersonField(
-        "Requestor",
-        Description = "The person requesting the item be created.",
-        Key = "Requestor",
-        IsRequired = true,
+    [WorkflowTextOrAttribute(
+        "Group Id",
+        "Attribute Value",
+        Description = "The item's Group Id or an attribute that contains the Group Id.",
+        Key = "GroupId",
+        IsRequired = false,
+        FieldTypeClassNames = new string[] { "Rock.Field.Types.TextFieldType" },
         Order = 3
         )]
     [KeyValueListField(
@@ -86,12 +88,14 @@ namespace com.baysideonline.BccMonday.Workflows
             errorMessages = new List<string>();
 
             var mergeFields = GetMergeFields(action);
-            var name = GetAttributeValue(action, "Name").ResolveMergeFields(mergeFields);
-            var boardId = GetAttributeValue(action, "BoardId").ResolveMergeFields(mergeFields);
+            var name = GetAttributeValue(action, "Name", true).ResolveMergeFields(mergeFields);
+            var boardId = GetAttributeValue(action, "BoardId", true).ResolveMergeFields(mergeFields);
+            var groupId = GetAttributeValue(action, "GroupId", true).ResolveMergeFields(mergeFields);
             var requestor = GetAttributeValue(action, "Requestor");
             var columnValuesDict = GetAttributeValue(action, "ColumnValues").AsDictionaryOrNull();
 
             var columnValues = columnValuesDict.Select(c => new { c.Key, Value = c.Value.ResolveMergeFields(mergeFields) })
+                .Where(c => c.Value.IsNotNullOrWhiteSpace())
                 .ToDictionary(k => k.Key, k => k.Value);
 
             var serializedCV = JsonConvert.SerializeObject(columnValues);
@@ -100,6 +104,7 @@ namespace com.baysideonline.BccMonday.Workflows
             {
                 Name = name,
                 BoardId = long.Parse(boardId),
+                GroupId = groupId,
                 ColumnValues = columnValues,
                 CreateLabelsIfMissing = false
             };

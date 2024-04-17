@@ -64,7 +64,7 @@ namespace com.baysideonline.BccMonday.Workflows
         Description = "The new column's Column Type.",
         Key = "ColumnType",
         DefaultValue = "text",
-        FieldTypeClassNames = new string[] { "Rock.Field.Types.TextFieldType" },
+        FieldTypeClassNames = new string[] { "Rock.Field.Types.TextFieldType", "Rock.Field.Types.SelectSingleFieldType" },
         Order = 5
         )]
 

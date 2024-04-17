@@ -5,6 +5,7 @@ using com.baysideonline.BccMonday.Utilities.Api.Schema;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
+using Rock;
 using Rock.Bus.Message;
 using Rock.CheckIn;
 using Rock.Data;
@@ -633,7 +634,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 variables.Add("columnValues", serializedCV);
             }
 
-            if (options.GroupId != null)
+            if (options.GroupId != null && options.GroupId.IsNotNullOrWhiteSpace())
             {
                 variables.Add("groupId", options.GroupId);
                 arguments.Add("group_id", "$groupId");
