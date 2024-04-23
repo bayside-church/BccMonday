@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace com.baysideonline.BccMonday.Utilities.Api.Responses
 {
-    public class GetItemsByPageResponse
+    public class GetItemsPageByColumnValuesResponse
     {
         [JsonProperty("items_page_by_column_values")]
         public ItemsPage ItemsPage { get; set; }

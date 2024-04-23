@@ -77,6 +77,15 @@ namespace com.baysideonline.BccMonday.Blocks
             var bccMondayBoard = GetBccMondayBoard(bccMondayBoardId);
 
             var chosenBoard = GetChosenBoard(bccMondayBoard, boardOption);
+
+            if (chosenBoard == null)
+            {
+                return new
+                {
+                    Content = ""
+                };
+            }
+
             var api = new MondayApi();
 
             List<ItemsPageByColumnValuesQuery> columnValuesQuery = new List<ItemsPageByColumnValuesQuery>
@@ -122,6 +131,11 @@ namespace com.baysideonline.BccMonday.Blocks
 
         public long? GetChosenBoard(BccMondayBoard board, bool closed = false)
         {
+            if (board == null)
+            {
+                return null;
+            }
+
             if (closed)
             {
                 return board.MondayBoardId;

@@ -65,7 +65,7 @@
     <Compile Include="Utilities\Api\Responses\GetAssetsResponse.cs" />
     <Compile Include="Utilities\Api\Responses\GetBoardsResponse.cs" />
     <Compile Include="Utilities\Api\Responses\GetBoardWorkspaceResponse.cs" />
-    <Compile Include="Utilities\Api\Responses\GetItemsByPageResponse.cs" />
+    <Compile Include="Utilities\Api\Responses\GetItemsPageByColumnValuesResponse.cs" />
     <Compile Include="Utilities\Api\Responses\GetItemsPageResponse.cs" />
     <Compile Include="Utilities\Api\Responses\GetItemsResponse.cs" />
     <Compile Include="Utilities\Api\Responses\GetNextItemsPageResponse.cs" />
