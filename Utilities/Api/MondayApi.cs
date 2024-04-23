@@ -3,21 +3,15 @@ using com.baysideonline.BccMonday.Utilities.Api.Interfaces;
 using com.baysideonline.BccMonday.Utilities.Api.Responses;
 using com.baysideonline.BccMonday.Utilities.Api.Schema;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using RestSharp;
 using Rock;
-using Rock.Bus.Message;
-using Rock.CheckIn;
 using Rock.Data;
 using Rock.Model;
-using Rock.SystemGuid;
 using Rock.Web.Cache;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 
 namespace com.baysideonline.BccMonday.Utilities.Api
 {
@@ -1172,7 +1166,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                 .AddNestedField("items_page_by_column_values",
                     new Dictionary<string, object>
                     {
-                        { "limit", 500 },
+                        { "limit", 10 },
                         { "board_id", "$boardId" },
                         { "columns", new List<Dictionary<string, object>>
                             {
@@ -1199,16 +1193,6 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                     )
                 ).Build();
 
-            /*
-             // Convert the list of objects to a list of dictionaries
-List<Dictionary<string, object>> columnsList = itemsList.Select(item =>
-    new Dictionary<string, object>
-    {
-        { "column_id", item.ColumnId },
-        { "column_values", item.ColumnValues }
-    }).ToList();
-            */
-
             var variables = new Dictionary<string, object>()
             {
                 { "boardId", boardId },
@@ -1216,7 +1200,7 @@ List<Dictionary<string, object>> columnsList = itemsList.Select(item =>
                 { "columnId", columnValues[0].ColumnId }
             };
 
-            var initialData = Query<GetItemsByPageResponse>(query, out List<string> errorMessages, variables);
+            var initialData = Query<GetItemsPageByColumnValuesResponse>(query, out List<string> errorMessages, variables);
             if (initialData == null) return allItems;
             if (initialData.ItemsPage == null) return allItems;
             var itemsPage = initialData.ItemsPage;
@@ -1227,40 +1211,81 @@ List<Dictionary<string, object>> columnsList = itemsList.Select(item =>
 
             while (!string.IsNullOrWhiteSpace(cursor))
             {
-                var nextItemsQuery = new GraphQLQueryBuilder()
-                    .AddVariable("$cursor", "String!")
-                    .AddNestedField("next_items_page",
+                var nextItems = NextItemsPageQuery(cursor, out string nextCursor);
+                cursor = nextCursor;
+                allItems.AddRange(nextItems);
+            }
+
+            return allItems;
+        }
+
+        public List<Item> GetItemsWithRuleFilters(long boardId, List<Dictionary<string, object>> rules)
+        {
+            if (!Initialize().IsOk()) return null;
+
+            List<Item> allItems = new List<Item>();
+
+            var query_params = new Dictionary<string, object>
+            {
+                { "rules", rules }
+            };
+
+            if (rules.Count > 1)
+            {
+                query_params.Add("operator", "or");
+            }
+
+            var query = new GraphQLQueryBuilder()
+                .AddVariable("$boardId", "ID!")
+                .AddNestedField("boards",
+                    new Dictionary<string, object>
+                    {
+                        { "ids", new [] { "$boardId" } },
+                        { "limit", 1 },
+                    }
+                    , q => q
+                    .AddField("id")
+                    .AddNestedField("items_page",
                         new Dictionary<string, object>
                         {
-                        { "limit", 500 },
-                        { "cursor", "$cursor" }
-                        }
-                        , q => q
+                            { "query_params", query_params }
+                        },
+                        q1 => q1
                         .AddField("cursor")
-                        .AddNestedField("items", q1 => q1
+                        .AddNestedField("items", q2 => q2
                             .AddField("id")
                             .AddField("name")
                             .AddField("created_at")
-                            .AddNestedField("column_values", q2 => q2
+                            .AddNestedField("column_values", q3 => q3
                                 .ColumnValueProps()
-                                .AddNestedField("column", q3 => q3.ColumnProps())
+                                .AddNestedField("column", q4 => q4.ColumnProps())
                                 .MirrorValueFragment()
                                 .StatusValueFragment()
                             )
                         )
-                    ).Build();
+                    )
+                ).Build();
 
-                var nextItemsVariables = new Dictionary<string, object>
-                {
-                    { "cursor", cursor }
-                };
+            var variables = new Dictionary<string, object>()
+            {
+                { "boardId", boardId }
+            };
 
-                var nextItemsPageData = new MondayApi().Query<GetNextItemsPageResponse>(nextItemsQuery, out List<string> extraErrorMessages, nextItemsVariables);
-                if (nextItemsPageData == null) return allItems;
-                var nextItemsPage = nextItemsPageData.NextItemsPage;
-                cursor = nextItemsPage.Cursor;
+            var initialData = Query<GetBoardsResponse>(query, out List<string> errorMessages, variables);
+            if (initialData == null) return allItems;
+            if (initialData.Boards == null) return allItems;
+            if (initialData.Boards.Count == 0) return allItems;
+            if (initialData.Boards[0].ItemsPage == null) return allItems;
+            var itemsPage = initialData.Boards[0].ItemsPage;
+            if (itemsPage.Items == null) return allItems;
+            var items = itemsPage.Items.ConvertAll(i => (Item)i);
+            var cursor = itemsPage.Cursor;
+            allItems.AddRange(items);
 
-                var nextItems = nextItemsPage.Items.ConvertAll(i => (Item)i);
+            while (!string.IsNullOrWhiteSpace(cursor))
+            {
+                var nextItems = NextItemsPageQuery(cursor, out string nextCursor);
+                cursor = nextCursor;
                 allItems.AddRange(nextItems);
             }
 
@@ -1329,48 +1354,54 @@ List<Dictionary<string, object>> columnsList = itemsList.Select(item =>
 
             while (!string.IsNullOrEmpty(cursor))
             {
-                var nextItemsQuery = new GraphQLQueryBuilder()
-                    .AddVariable("cursorVal", "String")
-                    .AddVariable("emailColumnId", "String!")
-                    .AddVariable("statusColumnId", "String!")
-                    .AddNestedField("next_items_page",
-                        new Dictionary<string, object>
-                        {
-                            { "cursor", "$cursorVal" },
-                            { "limit", 10 }
-                        }
-                        , q => q
-                        .AddField("cursor")
-                        .AddNestedField("items", q1 => q1
-                            .AddField("id")
-                            .AddField("name")
-                            .AddField("created_at")
-                            .AddNestedField("column_values", q2 => q2
-                                .ColumnValueProps()
-                                .AddNestedField("column", q3 => q3.ColumnProps() )
-                                .StatusValueFragment()
-                                .MirrorValueFragment()
-                            )
-                        )
-                    ).Build();
-
-                variables = new Dictionary<string, object>()
-                {
-                    { "cursorVal", cursor },
-                    { "emailColumnId", emailMatchColumnId },
-                    { "statusColumnId", statusColumnId }
-                };
-
-                var nextItemsPageData = new MondayApi().Query<GetNextItemsPageResponse>(nextItemsQuery, out List<string> extraErrorMessages, variables);
-                if (nextItemsPageData == null) return allItems;
-                var nextItemsPage = nextItemsPageData.NextItemsPage;
-                cursor = nextItemsPage.Cursor;
-
-                var nextItems = nextItemsPage.Items.ConvertAll(i => (Item)i);
+                var nextItems = NextItemsPageQuery(cursor, out string nextCursor);
+                cursor = nextCursor;
                 allItems.AddRange(nextItems);
             }
 
             return allItems;
+        }
+
+        public List<Item> NextItemsPageQuery(string cursor, out string nextCursor)
+        {
+            nextCursor = "";
+            if (!Initialize().IsOk())
+                return null;
+
+            var nextItemsQuery = new GraphQLQueryBuilder()
+                .AddNestedField("next_items_page",
+                    new Dictionary<string, object>
+                    {
+                        { "cursor", @"""" + cursor + @"""" },
+                        { "limit", 500 }
+                    }
+                    , q => q
+                    .AddField("cursor")
+                    .AddNestedField("items", q1 => q1
+                        .AddField("id")
+                        .AddField("name")
+                        .AddField("created_at")
+                        .AddNestedField("column_values", q2 => q2
+                            .ColumnValueProps()
+                            .AddNestedField("column", q3 => q3.ColumnProps())
+                            .StatusValueFragment()
+                            .MirrorValueFragment()
+                        )
+                    )
+            ).Build();
+
+            var variables = new Dictionary<string, object>()
+                {
+                    { "cursorVal", cursor },
+            };
+
+            var nextItemsPageData = new MondayApi().Query<GetNextItemsPageResponse>(nextItemsQuery, out List<string> extraErrorMessages, variables);
+            if (nextItemsPageData == null) return new List<Item>();
+            var nextItemsPage = nextItemsPageData.NextItemsPage;
+            nextCursor = nextItemsPage.Cursor;
+
+            var nextItems = nextItemsPage.Items.ConvertAll(i => (Item)i);
+            return nextItems;
         }
 
         #endregion
