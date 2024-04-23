@@ -1391,7 +1391,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             ).Build();
 
             var variables = new Dictionary<string, object>()
-                {
+            {
                     { "cursorVal", cursor },
             };
 
