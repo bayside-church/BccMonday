@@ -42,6 +42,7 @@ namespace com.baysideonline.BccMonday.ViewModels.MondayItemDetail
         public string CreatedAt { get; set; }
         public string CreatorName { get; set; }
         public string TextBody { get; set; }
+        public string Body { get; set; }
         public List<MondayUpdateBag> Replies { get; set; }
         public List<MondayAssetBag> Files { get; set; }
     }

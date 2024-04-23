@@ -26,6 +26,7 @@ export type MondayUpdateBag = {
     createdAt: string;
     creatorName: string;
     textBody: string;
+    body: string;
     replies: MondayUpdateBag[] | null;
     files: MondayAssetBag[] | null
 }

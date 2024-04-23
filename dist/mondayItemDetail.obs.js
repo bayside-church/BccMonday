@@ -76,7 +76,7 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
       var _hoisted_3$5 = {
         class: "well d-inline-block"
       };
-      var _hoisted_4$5 = ["textContent"];
+      var _hoisted_4$5 = ["innerHTML"];
       var _hoisted_5$3 = ["textContent"];
       var _hoisted_6$2 = ["textContent"];
       var script$7 = defineComponent({
@@ -89,8 +89,8 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
         },
         setup(__props) {
           return (_ctx, _cache) => {
-            return openBlock(), createElementBlock("div", _hoisted_1$7, [_hoisted_2$7, createElementVNode("div", _hoisted_3$5, [createElementVNode("p", {
-              textContent: toDisplayString(__props.reply.textBody)
+            return openBlock(), createElementBlock("div", _hoisted_1$7, [_hoisted_2$7, createElementVNode("div", _hoisted_3$5, [createElementVNode("div", {
+              innerHTML: __props.reply.body
             }, null, 8, _hoisted_4$5), createElementVNode("div", null, [createElementVNode("span", {
               style: {
                 "word-break": "break-all"
@@ -135,7 +135,7 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
       var _hoisted_2$5 = {
         class: "well"
       };
-      var _hoisted_3$4 = ["textContent"];
+      var _hoisted_3$4 = ["innerHTML"];
       var _hoisted_4$4 = ["textContent"];
       var _hoisted_5$2 = ["textContent"];
       var _hoisted_6$1 = {
@@ -198,8 +198,8 @@ System.register(['vue', '@Obsidian/Utility/block', '@Obsidian/Controls/rockButto
             return _saveReply.apply(this, arguments);
           }
           return (_ctx, _cache) => {
-            return openBlock(), createElementBlock("div", _hoisted_1$5, [createElementVNode("div", _hoisted_2$5, [createElementVNode("p", {
-              textContent: toDisplayString(__props.update.textBody)
+            return openBlock(), createElementBlock("div", _hoisted_1$5, [createElementVNode("div", _hoisted_2$5, [createElementVNode("div", {
+              innerHTML: __props.update.body
             }, null, 8, _hoisted_3$4), createElementVNode("div", null, [createElementVNode("span", {
               class: "font-weight-bold",
               textContent: toDisplayString(__props.update.creatorName)

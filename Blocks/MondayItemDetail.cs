@@ -218,11 +218,13 @@ namespace com.baysideonline.BccMonday.Blocks
                                 PublicUrl = a.PublicUrl,
                             }).ToList(),
                         TextBody = u.TextBody,
+                        Body = u.Body,
                         Replies = u.Replies.Select(r =>
                             new MondayUpdateBag
                             {
                                 Id = r.Id.ToString(),
                                 TextBody = r.TextBody,
+                                Body = r.Body,
                                 CreatedAt = r.CreatedAt.ToString(),
                                 CreatorName = r.CreatorName,
                             }).ToList()

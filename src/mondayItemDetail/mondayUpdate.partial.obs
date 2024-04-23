@@ -1,7 +1,7 @@
 <template>
     <div id="mondayUpdate" class="bcc-monday-well-group">
         <div class="well">
-            <p v-text="update.textBody"></p>
+            <div v-html="update.body"></div>
             <div>
                 <span class="font-weight-bold" v-text="update.creatorName"></span>
                 <span v-text="' on ' + update.createdAt"></span>
