@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace com.baysideonline.BccMonday.Utilities.Api
 {
@@ -113,36 +112,9 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             return this;
         }
 
-        /*
-        public GraphQLQueryBuilder AddNestedField(string fieldName, Action<GraphQLQueryBuilder> nestedQuery, Dictionary<string, object> arguments = null, string alias = null)
-        {
-            if (!string.IsNullOrWhiteSpace(alias))
-            {
-                queryBuilder.Append($"{fieldName} : {alias} ");
-            }
-            else
-            {
-                queryBuilder.Append($"{fieldName} ");
-            }
-
-            if (arguments != null && arguments.Count > 0)
-            {
-                var argumentsString = BuildArgumentsString(arguments);
-                queryBuilder.Append($"{argumentsString} ");
-            }
-
-            queryBuilder.Append("{ ");
-            nestedQuery.Invoke(this);
-            queryBuilder.Append("} ");
-
-            return this;
-        }
-        */
-
         private string BuildArgumentsString(Dictionary<string, object> arguments, bool isNested = false)
         {
             var argumentsBuilder = new StringBuilder();
-
             if (!isNested)
             {
                 argumentsBuilder.Append("(");
@@ -150,30 +122,10 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
             foreach (var arg in arguments)
             {
-                if (arg.Value is IEnumerable<object> enumerable && enumerable.Any())
-                {
-                    if (enumerable.First() is Dictionary<string, object>)
-                    {
-                        var formattedValues = string.Join(", ", enumerable.Select(value =>
-                        {
-                            var dictionary = (Dictionary<string, object>)value;
-                            return $"{{{BuildArgumentsString(dictionary, true)}}}";
-                        }));
-                        argumentsBuilder.Append($"{arg.Key}: [{formattedValues}], ");
-                    }
-                    else
-                    {
-                        var formattedValues = string.Join(", ", enumerable.Select(value => $"{value}"));
-                        argumentsBuilder.Append($"{arg.Key}: [{formattedValues}], ");
-                    }
-                }
-                else
-                {
-                    argumentsBuilder.Append($"{arg.Key}: {FormatArgumentValue(arg.Value)}, ");
-                }
+                argumentsBuilder.Append(BuildArgumentString(arg.Key, arg.Value));
             }
 
-            if (argumentsBuilder.Length > 2)
+            if (argumentsBuilder.Length > 2 && argumentsBuilder[argumentsBuilder.Length - 1] == ' ' && argumentsBuilder[argumentsBuilder.Length - 2] == ',')
             {
                 argumentsBuilder.Remove(argumentsBuilder.Length - 2, 2); // Remove trailing comma and space
             }
@@ -186,8 +138,38 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             return argumentsBuilder.ToString();
         }
 
+        private string BuildArgumentString(string key, object value)
+        {
+            if (value is IEnumerable<object> enumerable && enumerable.Any())
+            {
+                return BuildEnumerableArgumentString(key, enumerable);
+            }
+            else if (value is Dictionary<string, object> dict && dict.Any())
+            {
+                return $"{key} : {{{BuildArgumentsString(dict, true)}}}";
+            }
+            else
+            {
+                return $"{key}: {FormatArgumentValue(value)}, ";
+            }
+        }
 
+        private string BuildEnumerableArgumentString(string key, IEnumerable<object> enumerable)
+        {
+            var formattedValues = string.Join(", ", enumerable.Select(value =>
+            {
+                if (value is Dictionary<string, object>)
+                {
+                    return $"{{{BuildArgumentsString((Dictionary<string, object>)value, true)}}}";
+                }
+                else
+                {
+                    return $"{value}";
+                }
+            }));
 
+            return $"{key}: [{formattedValues}], ";
+        }
 
         public string Build()
         {
@@ -195,10 +177,10 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
             if (!string.IsNullOrEmpty(variablesString))
             {
-                return $"{operationType} {variablesString} {{{queryBuilder.ToString()}}}";
+                return $"{operationType} {variablesString} {{{queryBuilder}}}";
             }
 
-            return $"{operationType} {{{queryBuilder.ToString()}}}";
+            return $"{operationType} {{{queryBuilder}}}";
         }
 
         private string BuildVariablesString()
