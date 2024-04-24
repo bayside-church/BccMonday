@@ -121,6 +121,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Schema
             {
                 var emailMatch = Regex.Match(text, @"\[\[.*\]\]");
                 var uFEFFMatch = new Regex(@"\uFEFF");
+                var brMatch = new Regex(@"<br>");
 
                 if (!string.IsNullOrWhiteSpace(emailMatch.Value))
                 {
@@ -128,8 +129,12 @@ namespace com.baysideonline.BccMonday.Utilities.Api.Schema
                     _creatorName = _creatorName.Replace(@"[[", "");
                     _creatorName = _creatorName.Replace(@"]]", "");
 
-                    text = text.Substring(emailMatch.Length);
-                    text = text.Trim();
+                    var preText = text.Substring(0, emailMatch.Index);
+                    var postText = text.Substring(emailMatch.Index + emailMatch.Length);
+                    text = preText + postText;
+                    text = uFEFFMatch.Replace(text, "", 1, 0);
+                    text = uFEFFMatch.Replace(text, "\n");
+                    text = brMatch.Replace(text, "", 1);
                 }
                 text = uFEFFMatch.Replace(text, "", 1, 0);
                 text = uFEFFMatch.Replace(text, "\n");
