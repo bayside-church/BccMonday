@@ -7,39 +7,31 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 {
     public class GraphQLQueryBuilder
     {
-        private StringBuilder queryBuilder;
-        private Dictionary<string, object> variables;
-        private string operationType;
-        private Dictionary<string, object> arguments;
+        private readonly StringBuilder _queryBuilder;
+        private readonly Dictionary<string, object> _variables;
+        private readonly string _operationType;
+        private readonly Dictionary<string, object> _arguments;
 
         public GraphQLQueryBuilder(string operationType = "query")
         {
-            queryBuilder = new StringBuilder();
-            variables = new Dictionary<string, object>();
-            arguments = new Dictionary<string, object>();
-            this.operationType = operationType;
-        }
-
-        public GraphQLQueryBuilder SetOperationType(string operationType)
-        {
-            this.operationType = operationType;
-            return this;
+            _queryBuilder = new StringBuilder();
+            _variables = new Dictionary<string, object>();
+            _arguments = new Dictionary<string, object>();
+            _operationType = operationType;
         }
 
         public GraphQLQueryBuilder AddVariable(string variableName, object variableValue)
         {
-            variables[variableName] = variableValue;
+            _variables[variableName] = variableValue;
             return this;
         }
 
         public GraphQLQueryBuilder AddArgumentVariable(string argumentName, object argumentValue)
         {
-            if (arguments == null)
+            if (!_arguments.ContainsKey(argumentName))
             {
-                arguments = new Dictionary<string, object>();
+                _arguments[argumentName] = argumentValue;
             }
-
-            arguments[argumentName] = argumentValue;
             return this;
         }
 
@@ -47,11 +39,11 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         {
             if (!string.IsNullOrWhiteSpace(alias))
             {
-                queryBuilder.Append($"{fieldName} : {alias} ");
+                _queryBuilder.Append($"{fieldName} : {alias} ");
             }
             else
             {
-                queryBuilder.Append($"{fieldName} ");
+                _queryBuilder.Append($"{fieldName} ");
             }
 
             return this;
@@ -61,23 +53,15 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         {
             if (arguments != null && arguments.Count > 0)
             {
-                queryBuilder.Append("(");
+                _queryBuilder.Append("(");
 
                 foreach (var arg in arguments)
                 {
-                    if (arg.Value is IEnumerable<object> enumerable && enumerable.Any())
-                    {
-                        var formattedValues = string.Join(", ", enumerable.Select(value => $"{value}"));
-                        queryBuilder.Append($"{arg.Key}: [{formattedValues}], ");
-                    }
-                    else
-                    {
-                        queryBuilder.Append($"{arg.Key}: {FormatArgumentValue(arg.Value)}, ");
-                    }
+                    _queryBuilder.Append(BuildArgumentString(arg.Key, arg.Value));
                 }
 
-                queryBuilder.Remove(queryBuilder.Length - 2, 2); //Remove trailing comma and space
-                queryBuilder.Append(") ");
+                _queryBuilder.Remove(_queryBuilder.Length - 2, 2); //Remove trailing comma and space
+                _queryBuilder.Append(") ");
             }
 
             return this;
@@ -92,22 +76,22 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         {
             if (!string.IsNullOrWhiteSpace(alias))
             {
-                queryBuilder.Append($"{fieldName} : {alias} ");
+                _queryBuilder.Append($"{fieldName} : {alias} ");
             }
             else
             {
-                queryBuilder.Append($"{fieldName} ");
+                _queryBuilder.Append($"{fieldName} ");
             }
 
-            if (arguments != null && arguments.Count > 0)
+            if (arguments?.Any() == true)
             {
                 var argumentsString = BuildArgumentsString(arguments);
-                queryBuilder.Append($"{argumentsString} ");
+                _queryBuilder.Append($"{argumentsString} ");
             }
 
-            queryBuilder.Append("{ ");
+            _queryBuilder.Append("{ ");
             nestedQueryAction.Invoke(this);
-            queryBuilder.Append("} ");
+            _queryBuilder.Append("} ");
 
             return this;
         }
@@ -158,9 +142,9 @@ namespace com.baysideonline.BccMonday.Utilities.Api
         {
             var formattedValues = string.Join(", ", enumerable.Select(value =>
             {
-                if (value is Dictionary<string, object>)
+                if (value is Dictionary<string, object> dictionary)
                 {
-                    return $"{{{BuildArgumentsString((Dictionary<string, object>)value, true)}}}";
+                    return $"{{{BuildArgumentsString(dictionary, true)}}}";
                 }
                 else
                 {
@@ -177,15 +161,15 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
             if (!string.IsNullOrEmpty(variablesString))
             {
-                return $"{operationType} {variablesString} {{{queryBuilder}}}";
+                return $"{_operationType} {variablesString} {{{_queryBuilder}}}";
             }
 
-            return $"{operationType} {{{queryBuilder}}}";
+            return $"{_operationType} {{{_queryBuilder}}}";
         }
 
         private string BuildVariablesString()
         {
-            if (variables.Count == 0)
+            if (_variables.Count == 0)
             {
                 return "";
             }
@@ -193,7 +177,7 @@ namespace com.baysideonline.BccMonday.Utilities.Api
             var variablesBuilder = new StringBuilder();
             variablesBuilder.Append("(");
 
-            foreach (var variable in variables)
+            foreach (var variable in _variables)
             {
                 if (variable.Value is IEnumerable<object> enumerable && enumerable.Any())
                 {
@@ -211,7 +195,6 @@ namespace com.baysideonline.BccMonday.Utilities.Api
 
             return variablesBuilder.ToString();
         }
-
 
         private string FormatArgumentValue(object value)
         {
