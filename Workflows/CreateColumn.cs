@@ -74,11 +74,11 @@ namespace com.baysideonline.BccMonday.Workflows
         {
             errorMessages = new List<string>();
 
-            var boardId = GetAttributeValue(action, "BoardId");
-            var title = GetAttributeValue(action, "Title");
-            var columnId = GetAttributeValue(action, "ColumnId");
-            var description = GetAttributeValue(action, "Description");
-            var columnType = GetAttributeValue(action, "ColumnType");
+            var boardId = GetAttributeValue(action, "BoardId", true);
+            var title = GetAttributeValue(action, "Title", true);
+            var columnId = GetAttributeValue(action, "ColumnId", true);
+            var description = GetAttributeValue(action, "Description", true);
+            var columnType = GetAttributeValue(action, "ColumnType", true);
 
             var api = new MondayApi();
             var options = new ColumnCreationOptions
