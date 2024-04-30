@@ -5,7 +5,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-
 using Rock;
 using Rock.Model;
 using Rock.Attribute;
@@ -13,10 +12,8 @@ using Rock.Data;
 using Rock.Web.UI;
 using Rock.Web.UI.Controls;
 using Rock.Security;
-
 using com.baysideonline.BccMonday.Models;
 using com.baysideonline.BccMonday.Utilities.Api;
-using Newtonsoft.Json;
 using com.baysideonline.BccMonday.Utilities.Api.Schema;
 
 namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
@@ -157,7 +154,16 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
 
         public void gfMondayList_DisplayFilterValue(object sender, GridFilter.DisplayFilterValueArgs e)
         {
-            throw new NotImplementedException();
+            switch (e.Key)
+            {
+                case "Selected Board":
+                    Console.WriteLine("");
+                    break;
+                default:
+                    e.Value = string.Empty;
+                    break;
+
+            }
         }
 
         /// <summary>
@@ -224,69 +230,119 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
             using (var context = new RockContext())
             {
                 var sortProperty = gMondayList.SortProperty;
-
                 var api = new MondayApi();
-                
                 var requestorEmail = CurrentPerson.Email;
-
                 var boardOption = ddlBoardOption.SelectedValue;
                 var chosenBoard = GetChosenBoard(boardOption);
+                Board.LoadAttributes();
+                var personAliasColumn = Board.GetAttributeValue("RequesterAliasColumnId");
 
-                if (requestorEmail.IsNotNullOrWhiteSpace() && chosenBoard.HasValue)
+                // Constructing aliasColumnValue conditionally
+                var aliasColumnValue = personAliasColumn != null ?
+                    new ItemsPageByColumnValuesQuery
+                    {
+                        ColumnId = personAliasColumn,
+                        ColumnValues = CurrentPerson.Aliases.Select(a => a.Id.ToString()).ToList()
+                    } : null;
+
+                var aliasColumnValueRule = personAliasColumn.IsNotNullOrWhiteSpace() ?
+                    new ItemsQueryRule
+                    {
+                        ColumnId = personAliasColumn,
+                        CompareValue = "|" + string.Join("|", CurrentPerson.Aliases.Select(a => a.Id.ToString())) + "|",
+                        Operator = com.baysideonline.BccMonday.Utilities.Api.Interfaces.ItemsQueryRuleOperator.contains_text
+                    } : null;
+                var emailColumnValueRule = requestorEmail.IsNotNullOrWhiteSpace() && chosenBoard.HasValue ?
+                    new ItemsQueryRule
+                    {
+                        ColumnId = Board.EmailMatchColumnId,
+                        CompareValue = requestorEmail,
+                        Operator = com.baysideonline.BccMonday.Utilities.Api.Interfaces.ItemsQueryRuleOperator.contains_text
+                    } : null;
+
+                // Constructing emailColumnValue
+                var emailColumnValue = requestorEmail.IsNotNullOrWhiteSpace() && chosenBoard.HasValue ?
+                    new ItemsPageByColumnValuesQuery
+                    {
+                        ColumnId = Board.EmailMatchColumnId,
+                        ColumnValues = new List<string> { requestorEmail }
+                    } : null;
+
+                // Constructing columnValuesQuery
+                var columnValueRules = new List<ItemsQueryRule>();
+                var columnValuesQuery = new List<ItemsPageByColumnValuesQuery>();
+                if (emailColumnValue != null)
+                    columnValuesQuery.Add(emailColumnValue);
+
+                if (aliasColumnValue != null)
+                    columnValuesQuery.Add(aliasColumnValue);
+
+                if (aliasColumnValueRule != null)
+                    columnValueRules.Add(aliasColumnValueRule);
+                if(emailColumnValueRule != null)
+                    columnValueRules.Add(emailColumnValueRule);
+
+                List<Dictionary<string, object>> rules = columnValueRules.Select(obj => new Dictionary<string, object>
                 {
-                    List<ItemsPageByColumnValuesQuery> columnValuesQuery = new List<ItemsPageByColumnValuesQuery>
-                    {
-                        new ItemsPageByColumnValuesQuery
-                        {
-                            ColumnId = Board.EmailMatchColumnId,
-                            ColumnValues = new List<string> { requestorEmail }
-                        }
-                    };
-                    var result = api.GetItemsByBoardAndColumnValues(chosenBoard.Value, columnValuesQuery);
+                    { "column_id", $"\"{obj.ColumnId}\"" },
+                    { "compare_value", $"[\"{obj.CompareValue}\"]" },
+                    { "operator", obj.Operator }
+                }).ToList();
 
-                    //Check if list is empty/null
-                    if (result != null && result.Count > 0)
-                    {
-                        var items = result;
-
-                        var statusIndex = items[0].ColumnValues
-                                        .FindIndex(c => c.ColumnId == Board.MondayStatusColumnId);
-
-                        if (statusIndex == -1)
-                        {
-                            string statusError = string.Format("This board's (Name: {0} ~ Id: {1}) query has no status column matching {2}",
-                                Board.MondayBoardName, Board.MondayBoardId, Board.MondayStatusColumnId);
-                            ExceptionLogService.LogException(new Exception(statusError, new Exception("BccMonday")));
-                            gMondayList.DataSource = new List<Item>();
-                            gMondayList.DataBind();
-                            return;
-                        }
-
-                        // if the closed board is selected
-                        if (boardOption.Equals("Closed"))
-                        {
-                            items = items.Where(i =>
-                                string.Equals(i.ColumnValues[statusIndex].Text, Board.MondayStatusClosedValue) ||
-                                string.Equals(i.ColumnValues[statusIndex].Text, Board.MondayStatusCompleteValue)
-                            ).ToList();
-                        }
-                        else
-                        {
-                            items.RemoveAll(i =>
-                                string.Equals(i.ColumnValues[statusIndex].Text, Board.MondayStatusClosedValue) ||
-                                string.Equals(i.ColumnValues[statusIndex].Text, Board.MondayStatusCompleteValue)
-                            );
-                        }
-
-                        items = SortItems(sortProperty, items, statusIndex);
-
-                        Items = items.OfType<Item>().ToList();
-                        gMondayList.DataSource = Items;
-                        gMondayList.DataBind();
-                        return;
-                    }
+                if (columnValuesQuery.Count == 0 || chosenBoard == null)
+                {
+                    gMondayList.DataSource = new List<Item>();
+                    gMondayList.DataBind();
+                    return;
                 }
-                gMondayList.DataSource = new List<Item>();
+
+                var result = new MondayApi().GetItemsWithRuleFilters(chosenBoard.Value, rules);
+                //var result = api.GetItemsByBoardAndColumnValues(chosenBoard.Value, columnValuesQuery);
+
+                //Check if list is empty/null
+                if (result == null || result.Count == 0)
+                {
+                    gMondayList.DataSource = new List<Item>();
+                    gMondayList.DataBind();
+                    return;
+                }
+
+                var items = result;
+
+                var statusIndex = items[0].ColumnValues
+                    .FindIndex(c => c.ColumnId == Board.MondayStatusColumnId);
+
+                
+                if (statusIndex == -1)
+                {
+                    string statusError = string.Format("This board's (Name: {0} ~ Id: {1}) query has no status column matching {2}",
+                        Board.MondayBoardName, Board.MondayBoardId, Board.MondayStatusColumnId);
+                    ExceptionLogService.LogException(new Exception(statusError, new Exception("BccMonday")));
+                    gMondayList.DataSource = new List<Item>();
+                    gMondayList.DataBind();
+                    return;
+                }
+
+                // if the closed board is selected
+                if (boardOption.Equals("Closed"))
+                {
+                    items = items.Where(i =>
+                        string.Equals(i.ColumnValues[statusIndex].Text, Board.MondayStatusClosedValue) ||
+                        string.Equals(i.ColumnValues[statusIndex].Text, Board.MondayStatusCompleteValue)
+                    ).ToList();
+                }
+                else
+                {
+                    items.RemoveAll(i =>
+                        string.Equals(i.ColumnValues[statusIndex].Text, Board.MondayStatusClosedValue) ||
+                        string.Equals(i.ColumnValues[statusIndex].Text, Board.MondayStatusCompleteValue)
+                    );
+                }
+
+                items = SortItems(sortProperty, items, statusIndex);
+
+                Items = items.OfType<Item>().ToList();
+                gMondayList.DataSource = Items;
                 gMondayList.DataBind();
 
             }

@@ -17,6 +17,7 @@ using com.baysideonline.BccMonday.Models;
 using Newtonsoft.Json;
 using com.baysideonline.BccMonday.Utilities.Api.Interfaces;
 using com.baysideonline.BccMonday.Utilities.Api.Schema;
+using com.baysideonline.BccMonday.Utilities.Api.Config;
 
 namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
 {
@@ -389,8 +390,16 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
 
                 var board = GetBoard();
                 var item = GetItem();
-                var columnValue = api.ChangeColumnValue(item.Board.Id, item.Id,
-                    board.MondayStatusColumnId, board.MondayStatusClosedValue);
+
+                var options = new ColumnChangeOptions
+                {
+                    BoardId = item.Board.Id,
+                    ItemId = item.Id,
+                    ColumnId = board.MondayStatusColumnId,
+                    Value = board.MondayStatusClosedValue
+                };
+
+                var columnValue = api.ChangeColumnValue(options);
                 if (columnValue == null)
                 {
                     ShowError("Api Error: Unable to close item");
@@ -420,8 +429,16 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
 
                 var board = GetBoard();
                 var item = GetItem();
-                var columnValue = api.ChangeColumnValue(item.Board.Id, item.Id,
-                    board.MondayStatusColumnId, board.MondayStatusApprovedValue);
+
+                var options = new ColumnChangeOptions
+                {
+                    BoardId = item.Board.Id,
+                    ItemId = item.Id,
+                    ColumnId = board.MondayStatusColumnId,
+                    Value = board.MondayStatusApprovedValue
+                };
+
+                var columnValue = api.ChangeColumnValue(options);
                 if (columnValue == null)
                 {
                     ShowError("Api Error: Unable to approve item");
