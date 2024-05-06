@@ -235,7 +235,7 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
                 var boardOption = ddlBoardOption.SelectedValue;
                 var chosenBoard = GetChosenBoard(boardOption);
                 Board.LoadAttributes();
-                var personAliasColumn = Board.GetAttributeValue("RequesterAliasColumnId");
+                var personAliasColumn = Board.GetAttributeValue("RequesterAliasId");
 
                 // Constructing aliasColumnValue conditionally
                 var aliasColumnValue = personAliasColumn != null ?
@@ -249,7 +249,7 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
                     new ItemsQueryRule
                     {
                         ColumnId = personAliasColumn,
-                        CompareValue = "|" + string.Join("|", CurrentPerson.Aliases.Select(a => a.Id.ToString())) + "|",
+                        CompareValue = "|" + string.Join("|", CurrentPerson.PrimaryAliasId.ToString()) + "|",
                         Operator = com.baysideonline.BccMonday.Utilities.Api.Interfaces.ItemsQueryRuleOperator.contains_text
                     } : null;
                 var emailColumnValueRule = requestorEmail.IsNotNullOrWhiteSpace() && chosenBoard.HasValue ?

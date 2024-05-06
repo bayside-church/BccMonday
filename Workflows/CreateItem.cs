@@ -10,6 +10,7 @@ using Rock;
 using Newtonsoft.Json;
 using com.baysideonline.BccMonday.Utilities.Api;
 using com.baysideonline.BccMonday.Utilities.Api.Config;
+using com.baysideonline.BccMonday.Models;
 
 namespace com.baysideonline.BccMonday.Workflows
 {
@@ -46,16 +47,10 @@ namespace com.baysideonline.BccMonday.Workflows
         Order = 3
         )]
     [KeyValueListField(
-        "Requester",
-        Description = "The requester(s) who should view the new Item.",
-        Key = "Requester",
-        Order = 4
-        )]
-    [KeyValueListField(
         "Column Values",
         Description = "The column values of the new Item. The keys must all be lowercase.",
         Key = "ColumnValues",
-        Order = 5
+        Order = 4
         )]
     [WorkflowAttribute(
         "Item Id Attribute",
@@ -64,7 +59,7 @@ namespace com.baysideonline.BccMonday.Workflows
         "",
         "",
         Key = "ItemIdResultAttribute",
-        Order = 6
+        Order = 5
         )]
     [WorkflowAttribute(
         "Item Attribute",
@@ -73,7 +68,7 @@ namespace com.baysideonline.BccMonday.Workflows
         "",
         "",
         Key = "ItemResultAttribute",
-        Order = 7
+        Order = 6
         )]
     [BooleanField(
         "Continue on Error",
@@ -81,9 +76,8 @@ namespace com.baysideonline.BccMonday.Workflows
         false,
         "",
         Key = "ContinueOnError",
-        Order = 8
+        Order = 7
         )]
-
 
     public class CreateItem : ActionComponent
     {
@@ -91,7 +85,47 @@ namespace com.baysideonline.BccMonday.Workflows
         {
             errorMessages = new List<string>();
             var mergeFields = GetMergeFields(action);
-            var options = GetItemCreationOptions(action, mergeFields, out errorMessages);
+
+            var name = GetAttributeValue(action, "Name", true).ResolveMergeFields(mergeFields);
+            var boardId = long.Parse(GetAttributeValue(action, "BoardId", true).ResolveMergeFields(mergeFields));
+            var groupId = GetAttributeValue(action, "GroupId", true).ResolveMergeFields(mergeFields);
+            var columnValuesDict = GetAttributeValue(action, "ColumnValues").AsDictionaryOrNull();
+
+            var columnValues = columnValuesDict.Select(c => new { c.Key, Value = c.Value.ResolveMergeFields(mergeFields) })
+                .Where(c => c.Value.IsNotNullOrWhiteSpace())
+                .ToDictionary(k => k.Key, k => k.Value);
+
+            var missingRequester = "Missing requester values";
+
+            var bccMondayBoard = new BccMondayBoardService(new RockContext()).Queryable().Where(b => b.MondayBoardId == boardId).FirstOrDefault();
+            bccMondayBoard.LoadAttributes();
+            var requesterColumn = bccMondayBoard.GetAttributeValue("RequesterAliasId");
+
+            var defaultKVPair = default(KeyValuePair<string, string>);
+            var requesterAliasCV = columnValues.FirstOrDefault(c => c.Key == requesterColumn);
+            if (!requesterAliasCV.Equals(defaultKVPair))
+            {
+                var requesterValues = requesterAliasCV.Value.Split(',').Select(v => v.Trim()).ToList();
+
+                if (requesterValues.Count < 1)
+                {
+                    action.AddLogEntry(missingRequester);
+                    errorMessages.Add(missingRequester);
+                    throw new System.Exception("No requester value found");
+                }
+                var requesterFormat = string.Join("|", requesterValues);
+                requesterFormat = $"|{requesterFormat}|";
+                columnValues.AddOrReplace(requesterColumn, requesterFormat);
+            }
+
+            var options = new ItemCreationOptions
+            {
+                Name = name,
+                BoardId = boardId,
+                GroupId = groupId,
+                ColumnValues = columnValues,
+                CreateLabelsIfMissing = false
+            };
 
             if (!TryCreateItem(options, out var item, out var error))
             {
@@ -119,51 +153,6 @@ namespace com.baysideonline.BccMonday.Workflows
                 action.AddLogEntry($"Set {itemResult.Name} attribute to {JsonConvert.SerializeObject(item)}");
             }
             return true;
-        }
-
-        private ItemCreationOptions GetItemCreationOptions(WorkflowAction action, Dictionary<string, object> mergeFields, out List<string> errorMessages)
-        {
-            errorMessages = new List<string>();
-            var name = GetAttributeValue(action, "Name", true).ResolveMergeFields(mergeFields);
-            var boardId = GetAttributeValue(action, "BoardId", true).ResolveMergeFields(mergeFields);
-            var groupId = GetAttributeValue(action, "GroupId", true).ResolveMergeFields(mergeFields);
-            var requestor = GetAttributeValue(action, "Requestor");
-            var columnValuesDict = GetAttributeValue(action, "ColumnValues").AsDictionaryOrNull();
-
-            var columnValues = columnValuesDict.Select(c => new { c.Key, Value = c.Value.ResolveMergeFields(mergeFields) })
-                .Where(c => c.Value.IsNotNullOrWhiteSpace())
-                .ToDictionary(k => k.Key, k => k.Value);
-
-            var requesterValue = GetAttributeValue(action, "Requester", true).ResolveMergeFields(mergeFields).AsDictionaryOrNull();
-            var missingRequester = "Missing requester values";
-
-            if (requesterValue == null || requesterValue.FirstOrDefault().Value.IsNullOrWhiteSpace())
-            {
-                action.AddLogEntry(missingRequester);
-                errorMessages.Add(missingRequester);
-            }
-
-            var requesterValues = requesterValue.FirstOrDefault().Value.Split(',').Select(v => v.Trim()).ToList();
-
-            if (requesterValues.Count < 1)
-            {
-                action.AddLogEntry(missingRequester);
-                errorMessages.Add(missingRequester);
-            }
-            var requesterFormat = string.Join("|", requesterValues);
-            requesterFormat = $"|{requesterFormat}|";
-            columnValues.Add(requesterValue.FirstOrDefault().Key, requesterFormat);
-
-            var options = new ItemCreationOptions
-            {
-                Name = name,
-                BoardId = long.Parse(boardId),
-                GroupId = groupId,
-                ColumnValues = columnValues,
-                CreateLabelsIfMissing = false
-            };
-
-            return options;
         }
 
         private bool TryCreateItem(ItemCreationOptions options, out Utilities.Api.Schema.Item item, out string error)

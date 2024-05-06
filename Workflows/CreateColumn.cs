@@ -73,12 +73,13 @@ namespace com.baysideonline.BccMonday.Workflows
         public override bool Execute(RockContext rockContext, WorkflowAction action, object entity, out List<string> errorMessages)
         {
             errorMessages = new List<string>();
+            var mergeFields = GetMergeFields(action);
 
-            var boardId = GetAttributeValue(action, "BoardId", true);
-            var title = GetAttributeValue(action, "Title", true);
-            var columnId = GetAttributeValue(action, "ColumnId", true);
-            var description = GetAttributeValue(action, "Description", true);
-            var columnType = GetAttributeValue(action, "ColumnType", true);
+            var boardId = GetAttributeValue(action, "BoardId", true).ResolveMergeFields(mergeFields);
+            var title = GetAttributeValue(action, "Title", true).ResolveMergeFields(mergeFields);
+            var columnId = GetAttributeValue(action, "ColumnId", true).ResolveMergeFields(mergeFields);
+            var description = GetAttributeValue(action, "Description", true).ResolveMergeFields(mergeFields);
+            var columnType = GetAttributeValue(action, "ColumnType", true).ResolveMergeFields(mergeFields);
 
             var api = new MondayApi();
             var options = new ColumnCreationOptions
