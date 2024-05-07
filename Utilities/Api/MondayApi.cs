@@ -1421,15 +1421,15 @@ namespace com.baysideonline.BccMonday.Utilities.Api
                     var content = res.Content;
                     var queryData = JsonConvert.DeserializeObject<GraphQLResponse<T>>(content);
 
-                    if (queryData.Data != null)
-                    {
-                        return queryData.Data;
-                    }
-                    else if (queryData.Errors != null && queryData.Errors.Count > 0)
+                    if (queryData.Errors != null && queryData.Errors.Count > 0)
                     {
                         string errorMessage = queryData.Errors[0].Message;
                         errorMessages.Add(errorMessage);
                         ExceptionLogService.LogException(new Exception($"{errorMessage} | query: {query}", new Exception("BccMonday")));
+                    }
+                    else if (queryData.Data != null)
+                    {
+                        return queryData.Data;
                     }
                 }
                 else if (res.StatusCode == HttpStatusCode.InternalServerError)
