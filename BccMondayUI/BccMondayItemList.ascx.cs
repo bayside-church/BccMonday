@@ -249,7 +249,7 @@ namespace RockWeb.Plugins.com_baysideonline.BccMondayUI
                     new ItemsQueryRule
                     {
                         ColumnId = personAliasColumn,
-                        CompareValue = "|" + string.Join("|", CurrentPerson.PrimaryAliasId.ToString()) + "|",
+                        CompareValue = "|" + CurrentPerson.PrimaryAliasId.ToString() + "|",
                         Operator = com.baysideonline.BccMonday.Utilities.Api.Interfaces.ItemsQueryRuleOperator.contains_text
                     } : null;
                 var emailColumnValueRule = requestorEmail.IsNotNullOrWhiteSpace() && chosenBoard.HasValue ?
